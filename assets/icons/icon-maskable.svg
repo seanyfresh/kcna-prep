@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KCNA Prep">
+  <defs>
+    <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#326ce5"/>
+      <stop offset="1" stop-color="#1b4db3"/>
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed background so the safe zone is respected when masked. -->
+  <rect width="512" height="512" fill="url(#gm)"/>
+  <!-- K scaled into the central ~80% safe area. -->
+  <g transform="translate(256 256) scale(0.62) translate(-256 -256)">
+    <path fill="#ffffff" d="M150 116h54v124l108-124h66L330 256l52 140h-62l-38-104-78 86v18h-54z"/>
+    <circle cx="356" cy="372" r="15" fill="#9fc2ff"/>
+    <circle cx="396" cy="340" r="11" fill="#cdddff"/>
+    <circle cx="396" cy="404" r="11" fill="#cdddff"/>
+    <path d="M356 372 L396 340 M356 372 L396 404" stroke="#9fc2ff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

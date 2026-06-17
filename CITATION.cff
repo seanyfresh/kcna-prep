@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: "KCNA Prep — Study, Flashcards & Practice Exams"
+message: "If you use this study app, you may cite it as below."
+type: software
+authors:
+  - alias: seanyfresh
+    email: me@seanyfresh.com
+repository-code: "https://github.com/seanyfresh/kcna-prep"
+url: "https://github.com/seanyfresh/kcna-prep"
+abstract: >-
+  A self-contained, offline-capable web application for preparing for the
+  Kubernetes and Cloud Native Associate (KCNA) certification: study notes,
+  spaced-repetition flashcards, weighted practice/mock exams, a readiness model,
+  a knowledge base with authoritative references, and an 11-week study plan.
+keywords:
+  - kubernetes
+  - kcna
+  - cncf
+  - cloud-native
+  - certification
+  - flashcards
+  - spaced-repetition
+  - exam-prep
+license: MIT
+version: 1.0.0
+date-released: "2026-06-17"

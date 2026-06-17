@@ -1,0 +1,11 @@
+# Default owner for everything in this repo.
+* @seanyfresh
+
+# Study content gets extra scrutiny for accuracy.
+/data/ @seanyfresh
+
+# Security-sensitive config.
+/SECURITY.md            @seanyfresh
+/docs/SECURITY-AUDIT.md @seanyfresh
+/.github/workflows/     @seanyfresh
+/nginx.conf             @seanyfresh

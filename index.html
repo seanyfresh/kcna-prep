@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; form-action 'none'" />
+  <title>KCNA Prep — Study, Flashcards & Practice Exams</title>
+  <meta name="description" content="A free, offline-capable study app for the Kubernetes and Cloud Native Associate (KCNA) exam: notes, spaced-repetition flashcards, weighted mock exams, a readiness model, a knowledge base, and a study plan." />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <!-- Render-blocking: set theme before first paint to avoid a flash. -->
+  <script src="assets/js/theme-boot.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#app">Skip to main content</a>
+  <div id="app-root">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">K</div>
+        <div class="brand-text">
+          <strong>KCNA&nbsp;Prep</strong>
+          <span id="brand-countdown" class="brand-sub">loading…</span>
+        </div>
+      </div>
+      <nav class="mainnav" id="mainnav" aria-label="Primary">
+        <a href="#/dashboard" data-route="dashboard">Dashboard</a>
+        <a href="#/learn" data-route="learn">Learn</a>
+        <a href="#/cards" data-route="cards">Flashcards</a>
+        <a href="#/practice" data-route="practice">Practice</a>
+        <a href="#/readiness" data-route="readiness">Readiness</a>
+        <a href="#/plan" data-route="plan">Plan</a>
+        <a href="#/reference" data-route="reference">Reference</a>
+      </nav>
+      <div class="topbar-actions">
+        <span id="offline-pill" class="pill warn offline-pill" hidden>Offline</span>
+        <button class="icon-btn" id="search-btn" aria-label="Search (Ctrl or Cmd + K)" title="Search  ⌘K">🔍</button>
+        <a class="icon-btn" href="#/settings" id="settings-btn" aria-label="Settings" title="Settings">⚙️</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+      </div>
+    </header>
+
+    <div id="route-status" class="sr-only" role="status" aria-live="polite"></div>
+    <main id="app" class="app-main" tabindex="-1"><!-- views render here --></main>
+
+    <footer class="appfoot">
+      <span>KCNA Prep · Kubernetes &amp; Cloud Native Associate</span>
+      <span id="foot-stats"></span>
+    </footer>
+  </div>
+
+  <!-- Data registry (must load first) -->
+  <script src="assets/js/data-registry.js"></script>
+
+  <!-- Content data (generated) -->
+  <script src="data/fundamentals.js"></script>
+  <script src="data/orchestration.js"></script>
+  <script src="data/architecture.js"></script>
+  <script src="data/delivery.js"></script>
+
+  <!-- Knowledge base data -->
+  <script src="data/references.js"></script>
+  <script src="data/glossary.js"></script>
+
+  <!-- App logic -->
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/settings.js"></script>
+  <script src="assets/js/study-plan.js"></script>
+  <script src="assets/js/readiness.js"></script>
+  <script src="assets/js/flashcards.js"></script>
+  <script src="assets/js/exams.js"></script>
+  <script src="assets/js/search.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pwa.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Normalize line endings across platforms.
+* text=auto eol=lf
+
+# Scripts must keep LF so they run on macOS/Linux.
+*.sh   text eol=lf
+*.command text eol=lf
+
+# Windows launchers keep CRLF.
+*.bat  text eol=crlf
+
+# Treat these as binary (no diff/merge munging).
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+
+# Collapse generated content in diffs / language stats on GitHub.
+data/*.js linguist-generated=true

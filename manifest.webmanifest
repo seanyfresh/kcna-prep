@@ -1,0 +1,26 @@
+{
+  "name": "KCNA Prep — Kubernetes & Cloud Native Associate",
+  "short_name": "KCNA Prep",
+  "description": "Study notes, spaced-repetition flashcards, weighted practice exams, a readiness model, a knowledge base, and an 11-week study plan for the KCNA certification.",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Flashcards", "short_name": "Cards", "url": "./index.html#/cards", "description": "Review due flashcards" },
+    { "name": "Full mock exam", "short_name": "Mock", "url": "./index.html#/practice?mock=1", "description": "Sit a timed mock exam" },
+    { "name": "Readiness", "short_name": "Readiness", "url": "./index.html#/readiness", "description": "See your readiness analysis" }
+  ]
+}

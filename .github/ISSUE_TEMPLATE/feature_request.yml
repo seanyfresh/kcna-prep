@@ -1,0 +1,29 @@
+name: "✨ Feature request"
+description: "Suggest a new feature or improvement."
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      placeholder: "I can't tell which flashcards I've never seen…"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Project constraints
+      description: "KCNA Prep stays dependency-free and build-free."
+      options:
+        - label: "This can be done without adding a framework, build step, or runtime dependency."
+          required: true

@@ -1,0 +1,35 @@
+# ---- OS / editor cruft ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.sublime-*
+
+# ---- Logs / temp ----
+*.log
+npm-debug.log*
+.tmp/
+tmp/
+
+# ---- Node (only used for optional dev tooling: linters, link-checker) ----
+node_modules/
+package-lock.json
+.npm/
+
+# ---- Build / deploy artifacts ----
+dist/
+build/
+.cache/
+coverage/
+
+# ---- Local environment ----
+.env
+.env.local
+*.local
+
+# ---- Generated icons (kept in repo by default; uncomment if you regenerate) ----
+# assets/icons/generated/

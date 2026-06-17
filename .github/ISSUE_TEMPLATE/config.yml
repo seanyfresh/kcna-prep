@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / discussion
+    url: https://github.com/seanyfresh/kcna-prep/discussions
+    about: Ask a question or discuss study strategy here.
+  - name: Security vulnerability
+    url: https://github.com/seanyfresh/kcna-prep/security/advisories/new
+    about: Report security issues privately — please do NOT open a public issue.
+  - name: Official KCNA exam info
+    url: https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate-kcna/
+    about: Register for or read about the official exam (this app does not register you).

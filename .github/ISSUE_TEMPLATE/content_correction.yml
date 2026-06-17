@@ -1,0 +1,51 @@
+name: "📚 Content correction"
+description: "A study note, flashcard, or question is inaccurate."
+labels: ["content", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Accuracy matters most here. Please cite an authoritative source."
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - Kubernetes Fundamentals
+        - Container Orchestration
+        - Cloud Native Architecture
+        - Cloud Native Observability
+        - Cloud Native Application Delivery
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Content type
+      options:
+        - Study note
+        - Flashcard
+        - Practice question / answer / explanation
+        - Glossary term
+        - Reference link
+    validations:
+      required: true
+  - type: input
+    id: locator
+    attributes:
+      label: Where is it?
+      description: "Note/question title or the on-screen text so we can find it."
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong, and what should it say?
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Authoritative source (URL)
+      description: "kubernetes.io, cncf.io, prometheus.io, etc."
+    validations:
+      required: true
