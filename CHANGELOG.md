@@ -2,16 +2,6 @@
 
 All notable changes to **KCNA Prep** are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Each release lists what changed (seriously), then *why* (less seriously).
-
-## [Unreleased]
-
-_Nothing yet._
-
-> 😴 *The changelog naps. It has earned it.*
-
 ## [1.7.0] - 2026-06-18
 
 ### Added
