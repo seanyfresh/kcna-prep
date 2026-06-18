@@ -57,10 +57,10 @@ jobs:
       - name: Link checker
         uses: lycheeverse/lychee-action@v2
         with:
+          fail: false
           args: >-
             --no-progress
             --accept 200,206,429
             --exclude-path node_modules
             --exclude 'localhost'
             './**/*.md'
-        fail: false
