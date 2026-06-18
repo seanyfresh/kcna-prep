@@ -80,7 +80,8 @@
 
   function updateChrome() {
     const cd = StudyPlan.countdown();
-    $('#brand-countdown').textContent = cd.days + ' days to exam · Sept 1';
+    const short = cd.exam.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    $('#brand-countdown').textContent = cd.days + ' days · pass by ' + short;
     if (KCNA.ready()) {
       const c = KCNA.counts();
       $('#foot-stats').textContent = c.questions + ' questions · ' + c.flashcards + ' flashcards · ' + c.notes + ' notes';
@@ -88,6 +89,23 @@
   }
 
   /* ================= DASHBOARD ================= */
+  const EXAM_URL = 'https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate-kcna/';
+
+  // Persistent reminder to BOOK the exam — the app can't schedule it for you.
+  function schedulingBanner() {
+    if (Settings.get().scheduled) return '';
+    const cd = StudyPlan.countdown();
+    const short = cd.exam.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    const urgent = cd.days <= 30;
+    return '<div class="banner schedule-banner' + (urgent ? ' banner-bad' : '') + '" role="alert">' +
+      '<div><strong>' + (urgent ? '🚨' : '⚠️') + ' Company deadline — pass the KCNA by ' + esc(short) + ' (' + cd.days + ' days left).</strong> ' +
+      'The app can\'t book your exam; you must schedule it yourself' + (urgent ? ' <strong>now</strong>' : '') + '.</div>' +
+      '<div class="btn-row">' +
+        '<a class="btn sm primary" href="' + EXAM_URL + '" target="_blank" rel="noopener noreferrer">Book exam ↗</a>' +
+        '<button class="btn sm ghost" id="mark-scheduled">I\'ve scheduled it</button>' +
+      '</div></div>';
+  }
+
   function viewDashboard() {
     const cd = StudyPlan.countdown();
     const r = Readiness.compute();
@@ -107,6 +125,7 @@
     }).join('');
 
     render(
+      schedulingBanner() +
       '<div class="hero">' +
         '<div class="card pad-lg readiness-card">' +
           '<div class="eyebrow">Your readiness</div>' +
@@ -122,9 +141,9 @@
           '</div>' +
         '</div>' +
         '<div class="card countdown-card">' +
-          '<div class="eyebrow">Exam countdown</div>' +
+          '<div class="eyebrow">Company deadline</div>' +
           '<div class="countdown-num">' + cd.days + '</div>' +
-          '<div class="sub">days remaining</div>' +
+          '<div class="sub">days to pass by</div>' +
           '<div class="countdown-date">' + cd.examLabel + '</div>' +
         '</div>' +
       '</div>' +
@@ -158,6 +177,8 @@
         '</div></div>'
     );
     bindPlanChecks();
+    const ms = $('#mark-scheduled');
+    if (ms) ms.addEventListener('click', function () { Settings.set({ scheduled: true }); viewDashboard(); });
   }
   function stat(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
 
@@ -543,7 +564,7 @@
         '<div class="domain-score"><span class="' + (h.pct >= KCNA.meta.passPct ? 'tag-easy' : 'tag-hard') + '">' + h.pct + '%</span></div></div>';
     }).join('') : '<p class="muted">No attempts yet. Take a quiz or mock to populate your history.</p>';
 
-    render('<div class="page-head"><h1>Readiness analysis</h1><p>An honest read on whether you are ready to pass the KCNA on Sept 1.</p></div>' +
+    render('<div class="page-head"><h1>Readiness analysis</h1><p>An honest read on whether you are ready to pass the KCNA before the Oct 1 deadline.</p></div>' +
       '<div class="hero">' +
         '<div class="card pad-lg"><div class="gauge-wrap">' + gauge(r.readiness, true) +
           '<div><span class="pill ' + r.levelClass + '">' + r.level + '</span>' +
@@ -700,12 +721,14 @@
           seg('reducedMotion', s.reducedMotion, [['auto', 'Auto'], ['on', 'Reduced'], ['off', 'Full']]) + '</div>' +
       '</div>' +
 
-      '<div class="card mt-lg"><h2>Exam date &amp; plan</h2>' +
+      '<div class="card mt-lg"><h2>Deadline &amp; plan</h2>' +
         '<p class="muted" style="margin-top:0">Changing these updates your countdown, study plan, and readiness.</p>' +
-        '<div class="setting"><label for="exam-date"><strong>Exam date</strong></label>' +
-          '<input type="date" id="exam-date" class="fc-input" style="max-width:200px" value="' + esc(m.examDate) + '"></div>' +
+        '<div class="setting"><div><strong>Deadline (pass by)</strong><div class="faint">Company deadline to pass the KCNA.</div></div>' +
+          '<input type="date" id="exam-date" aria-label="Deadline date" class="fc-input" style="max-width:200px" value="' + esc(m.examDate) + '"></div>' +
         '<div class="setting"><label for="plan-start"><strong>Plan start</strong></label>' +
           '<input type="date" id="plan-start" class="fc-input" style="max-width:200px" value="' + esc(m.planStart) + '"></div>' +
+        '<div class="setting"><div><strong>Exam scheduled?</strong><div class="faint">Hides the "book your exam" reminder once booked.</div></div>' +
+          seg('scheduled', s.scheduled ? 'yes' : 'no', [['no', 'Not yet'], ['yes', 'Booked ✓']]) + '</div>' +
         '<div class="btn-row mt"><button class="btn primary" id="save-dates">Save dates</button>' +
           '<button class="btn ghost" id="reset-dates">Reset to defaults</button></div></div>' +
 
@@ -727,6 +750,7 @@
     // appearance
     on('[data-seg="theme"] button', 'click', function () { Settings.set({ theme: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="reducedMotion"] button', 'click', function () { Settings.set({ reducedMotion: this.getAttribute('data-val') }); viewSettings(); });
+    on('[data-seg="scheduled"] button', 'click', function () { Settings.set({ scheduled: this.getAttribute('data-val') === 'yes' }); viewSettings(); });
 
     // dates
     $('#save-dates').addEventListener('click', function () {

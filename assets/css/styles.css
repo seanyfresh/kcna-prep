@@ -298,6 +298,9 @@ a:hover { text-decoration: underline; }
 .empty-state .big { font-size: 42px; margin-bottom: 10px; }
 
 .banner { padding: 13px 16px; border-radius: 10px; background: var(--warn-soft); border: 1px solid rgba(255,145,120,0.3); color: #ffa58f; margin-bottom: 18px; font-size: 13.5px; }
+.banner.schedule-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.banner.schedule-banner .btn-row { flex: none; }
+.banner.banner-bad { background: var(--bad-soft); border-color: rgba(225,78,53,0.4); color: #ff7a60; }
 
 @media (max-width: 860px) {
   .grid.cols-2, .grid.cols-3, .grid.cols-4, .hero, .stat-row, .result-grid { grid-template-columns: 1fr; }

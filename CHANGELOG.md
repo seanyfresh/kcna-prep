@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
-## [1.2.0] - 2026-06-17
+## [1.3.0] - 2026-06-17
+
+### Changed
+- **Countdown now targets the company deadline to pass the KCNA by Oct 1, 2026**
+  (was the Sept 1 exam date). The top-bar and dashboard countdowns, study plan,
+  and readiness all reflect the new date.
+
+### Added
+- A persistent **"book your exam" warning** on the dashboard (the app can't
+  schedule the exam for you), with a one-click link to the official registration
+  page and an **"I've scheduled it"** action. The reminder escalates within 30
+  days of the deadline and can be toggled in **Settings → Deadline & plan**.
+- A study-plan task to book the exam seat during mock-exam week.
 
 ### Added
 - **Save / Load session** menu in the top bar (save icon → "Save session…" /
@@ -88,7 +100,8 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/seanyfresh/kcna-prep/releases/tag/v1.0.0

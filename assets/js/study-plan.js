@@ -1,5 +1,6 @@
 /* Personalized study plan — tuned for a BEGINNER studying LIGHT hours
-   (<5 hrs/week) from 2026-06-17 to the exam on 2026-09-01 (~11 weeks).
+   (<5 hrs/week) from 2026-06-17, ahead of the company deadline to pass by
+   2026-10-01 (~11 weeks of prep, with buffer to schedule & sit the exam).
    High-yield ordering: weight-prioritized, fundamentals first, mocks last. */
 window.StudyPlan = (function () {
   const ONE_DAY = 86400000;
@@ -71,12 +72,13 @@ window.StudyPlan = (function () {
       ],
     },
     {
-      focus: 'First full mock exam',
-      goal: 'Sit a timed 60-question mock. Review every wrong answer.',
+      focus: 'First full mock exam + book your seat',
+      goal: 'Sit a timed 60-question mock, review every wrong answer, and schedule the real exam.',
       tasks: [
         ['w8t1', 'Take a full timed Mock Exam (60 Q / 90 min)', '#/practice?mock=1'],
         ['w8t2', 'Review all incorrect answers and read the explanations', '#/readiness'],
         ['w8t3', 'Re-quiz your two weakest domains (see Readiness)', '#/readiness'],
+        ['w8t4', '📅 Book your KCNA exam slot now — you must pass by Oct 1 (Dashboard → Book exam)', '#/dashboard'],
       ],
     },
     {
@@ -98,13 +100,13 @@ window.StudyPlan = (function () {
       ],
     },
     {
-      focus: 'Exam week — light review & rest',
-      goal: 'Final confidence pass, then rest. Exam on Sept 1.',
+      focus: 'Exam window — sit it before the Oct 1 deadline',
+      goal: 'Final confidence pass, then take the exam with time to spare before Oct 1.',
       tasks: [
-        ['w11t1', 'One final Mock Exam earlier in the week', '#/practice?mock=1'],
+        ['w11t1', 'One final Mock Exam before your booked date', '#/practice?mock=1'],
         ['w11t2', 'Light flashcard review — no cramming the day before', '#/cards'],
         ['w11t3', 'Check exam logistics: ID, system check, quiet room', '#/readiness'],
-        ['w11t4', '🎓 Sit the KCNA exam on Sept 1', '#/readiness'],
+        ['w11t4', '🎓 Sit the KCNA exam (must pass by Oct 1)', '#/readiness'],
       ],
     },
   ];

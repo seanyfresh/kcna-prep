@@ -5,13 +5,13 @@ window.KCNA = (function () {
   const glossaryTerms = [];        // [{term,definition,domain,sourceUrl}]
 
   const meta = {
-    version: '1.2.0',
+    version: '1.3.0',
     examName: 'KCNA',
     examFull: 'Kubernetes and Cloud Native Associate',
     passPct: 75,        // CNCF passing score
     examQuestions: 60,  // questions on the real exam
     examMinutes: 90,    // duration
-    examDate: '2026-09-01',
+    examDate: '2026-10-01',   // company-wide deadline: pass the KCNA by Oct 1, 2026
     planStart: '2026-06-17',
   };
 
