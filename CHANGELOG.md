@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [1.2.0] - 2026-06-17
+
+### Added
+- **Save / Load session** menu in the top bar (save icon → "Save session…" /
+  "Load session…"), so several people can share one device without accounts —
+  each keeps their own session file and loads it when they sit down.
+  - Sessions save as **`KCNA Exam Prep - YYYY-MM-DD HHMM.seanyprep`**.
+  - Uses the **File System Access API** to open a native dialog that **defaults to
+    the Documents folder** (Chrome/Edge); falls back to a normal download +
+    file-picker on Safari/Firefox.
+  - Loading a session cleanly **replaces** the current progress (a true switch
+    between users), after validating the file.
+
+### Removed
+- The separate **Export / Import progress** buttons in Settings — superseded by
+  the top-bar Save / Load session menu (one consistent file flow).
+
 ## [1.1.0] - 2026-06-17
 
 ### Changed
@@ -71,6 +88,7 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/seanyfresh/kcna-prep/releases/tag/v1.0.0

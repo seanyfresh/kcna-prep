@@ -86,6 +86,17 @@ Your progress (quiz history, flashcard schedule, plan, settings) is saved in you
 browser's local storage on this device. Back it up or move it via **Settings →
 Export / Import**.
 
+## Sharing one device (multiple users, no accounts)
+
+Use the **save icon in the top bar → Save session… / Load session…** so several
+people can share a single install without any user management. Each person saves
+their own session file named **`KCNA Exam Prep - YYYY-MM-DD HHMM.seanyprep`** and
+loads it when they sit down (loading cleanly replaces the current progress).
+
+On Chrome/Edge the save dialog **defaults to your Documents folder**; Safari and
+Firefox don't allow choosing the folder, so the file goes to your normal Downloads
+folder (then keep it wherever you like).
+
 ## Tech & design
 
 Vanilla **HTML/CSS/JS**. **No framework, no build step, no runtime dependencies** —

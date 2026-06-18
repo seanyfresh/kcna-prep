@@ -710,11 +710,8 @@
           '<button class="btn ghost" id="reset-dates">Reset to defaults</button></div></div>' +
 
       '<div class="card mt-lg"><h2>Your progress</h2>' +
-        '<p class="muted" style="margin-top:0">Back up your quiz history, flashcard schedule, and plan to a file — or move it to another device.</p>' +
-        '<div class="btn-row"><button class="btn" id="export">⬇️ Export progress</button>' +
-          '<button class="btn" id="import-btn">⬆️ Import progress</button>' +
-          '<input type="file" id="import-file" accept="application/json,.json" hidden>' +
-          '<button class="btn" id="reset-progress">Reset progress</button></div>' +
+        '<p class="muted" style="margin-top:0">Save or load your session from the <strong>save icon</strong> in the top bar — handy when several people share this device. Progress is stored on this device until you save it to a file.</p>' +
+        '<div class="btn-row"><button class="btn" id="reset-progress">Reset progress</button></div>' +
         '<div id="settings-msg" class="mt" aria-live="polite"></div></div>' +
 
       (canInstall ? '<div class="card mt-lg"><h2>Install</h2><p class="muted" style="margin-top:0">Install KCNA Prep as an app for offline study and a home-screen icon.</p>' +
@@ -744,18 +741,6 @@
     });
 
     // progress
-    $('#export').addEventListener('click', function () { Settings.exportToFile(); settingsMsg('Progress exported.', 'good'); });
-    $('#import-btn').addEventListener('click', function () { $('#import-file').click(); });
-    $('#import-file').addEventListener('change', function () {
-      const f = this.files && this.files[0]; if (!f) return;
-      const reader = new FileReader();
-      reader.onload = function () {
-        const res = Settings.importFromText(String(reader.result));
-        if (res.ok) { settingsMsg('Imported ' + res.count + ' items. Reloading…', 'good'); setTimeout(() => location.reload(), 900); }
-        else settingsMsg('Import failed: ' + res.error, 'bad');
-      };
-      reader.readAsText(f);
-    });
     $('#reset-progress').addEventListener('click', function () {
       if (confirm('Reset your study progress? Settings (theme, dates) are kept. This cannot be undone.')) {
         Settings.resetProgress(); settingsMsg('Progress reset.', 'good'); setTimeout(() => location.reload(), 700);
@@ -812,6 +797,72 @@
     input.focus();
   }
   function closeSearch() { const ov = $('#search-overlay'); if (ov) ov.remove(); searchOpen = false; }
+
+  /* ================= SESSION MENU (save / load) ================= */
+  function appToast(msg) {
+    const old = document.getElementById('app-toast'); if (old) old.remove();
+    const t = document.createElement('div');
+    t.id = 'app-toast'; t.className = 'pwa-toast'; t.setAttribute('role', 'status');
+    const span = document.createElement('span'); span.textContent = msg; t.appendChild(span);
+    const x = document.createElement('button');
+    x.className = 'pwa-toast-x'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '✕';
+    x.addEventListener('click', () => t.remove());
+    t.appendChild(x);
+    document.body.appendChild(t);
+    setTimeout(() => { if (document.getElementById('app-toast') === t) t.remove(); }, 5000);
+  }
+
+  function closeSessionMenu() {
+    const m = document.getElementById('session-menu'); if (m) m.remove();
+    const b = $('#session-btn'); if (b) b.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', outsideSessionClick);
+    document.removeEventListener('keydown', sessionMenuKey);
+  }
+  function outsideSessionClick(e) {
+    const m = document.getElementById('session-menu'); const b = $('#session-btn');
+    if (m && !m.contains(e.target) && b && !b.contains(e.target)) closeSessionMenu();
+  }
+  function sessionMenuKey(e) {
+    if (e.key === 'Escape') { closeSessionMenu(); const b = $('#session-btn'); if (b) b.focus(); }
+  }
+  function toggleSessionMenu() {
+    if (document.getElementById('session-menu')) { closeSessionMenu(); return; }
+    const btn = $('#session-btn');
+    const menu = document.createElement('div');
+    menu.id = 'session-menu'; menu.className = 'menu'; menu.setAttribute('role', 'menu');
+    menu.innerHTML =
+      '<button role="menuitem" data-sess="save">' +
+        '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>' +
+        'Save session…</button>' +
+      '<button role="menuitem" data-sess="load">' +
+        '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+        'Load session…</button>';
+    btn.parentNode.appendChild(menu);
+    btn.setAttribute('aria-expanded', 'true');
+    on('#session-menu [data-sess]', 'click', function () {
+      const act = this.getAttribute('data-sess');
+      closeSessionMenu();
+      if (act === 'save') doSaveSession(); else doLoadSession();
+    });
+    setTimeout(() => document.addEventListener('click', outsideSessionClick), 0);
+    document.addEventListener('keydown', sessionMenuKey);
+    const first = menu.querySelector('button'); if (first) first.focus();
+  }
+
+  function doSaveSession() {
+    Settings.saveSession().then(function (r) {
+      if (!r || r.cancelled) return;
+      if (r.ok) appToast((r.method === 'download' ? 'Session downloaded: ' : 'Session saved: ') + r.name);
+      else appToast('Could not save session' + (r.error ? ': ' + r.error : '.'));
+    });
+  }
+  function doLoadSession() {
+    Settings.loadSession().then(function (r) {
+      if (!r || r.cancelled) return;
+      if (r.ok) { appToast('Loaded session (' + r.count + ' items). Reloading…'); setTimeout(() => location.reload(), 850); }
+      else appToast('Could not load session' + (r.error ? ': ' + r.error : '.'));
+    });
+  }
 
   /* ================= KEYBOARD SHORTCUTS ================= */
   function showShortcutsHelp() {
@@ -923,6 +974,7 @@
   window.addEventListener('hashchange', route);
   $('#nav-toggle').addEventListener('click', () => toggleNav());
   $('#search-btn').addEventListener('click', openSearch);
+  $('#session-btn').addEventListener('click', toggleSessionMenu);
   appEl.addEventListener('click', function (e) {
     const t = e.target.closest && e.target.closest('[data-act="reload"]');
     if (t) location.reload();

@@ -68,27 +68,19 @@ window.Settings = (function () {
     };
   }
 
-  function exportToFile() {
-    const blob = new Blob([JSON.stringify(snapshot(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0, 10);
-    a.href = url;
-    a.download = 'kcna-prep-progress-' + stamp + '.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
   // Returns {ok:true, count} or {ok:false, error}. Validates shape + size.
-  function importFromText(text) {
+  // opts.replace: clear existing progress first (a clean "switch user" load).
+  function importFromText(text, opts) {
+    opts = opts || {};
     if (!text || text.length > 2_000_000) return { ok: false, error: 'File is empty or too large.' };
     let parsed;
     try { parsed = JSON.parse(text); }
-    catch (e) { return { ok: false, error: 'Not valid JSON.' }; }
+    catch (e) { return { ok: false, error: 'Not a valid session file.' }; }
     if (!parsed || parsed.app !== 'kcna-prep' || typeof parsed.data !== 'object') {
-      return { ok: false, error: 'This is not a KCNA Prep backup file.' };
+      return { ok: false, error: 'This is not a KCNA Prep session file.' };
+    }
+    if (opts.replace) {
+      Object.keys(localStorage).forEach((k) => { if (k.indexOf(PFX) === 0) localStorage.removeItem(k); });
     }
     let count = 0;
     Object.keys(parsed.data).forEach((k) => {
@@ -104,6 +96,79 @@ window.Settings = (function () {
     return { ok: true, count };
   }
 
+  /* ---------- named session files (.seanyprep) for multi-user sharing ---------- */
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  // "KCNA Exam Prep - YYYY-MM-DD HHMM.seanyprep" (local time).
+  function sessionFilename() {
+    const d = new Date();
+    const date = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const time = pad(d.getHours()) + pad(d.getMinutes());
+    return 'KCNA Exam Prep - ' + date + ' ' + time + '.seanyprep';
+  }
+
+  function downloadText(text, filename) {
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  const SESSION_TYPES = [{ description: 'KCNA Prep session', accept: { 'application/json': ['.seanyprep'] } }];
+
+  // Save the whole session to a .seanyprep file. Uses the File System Access API
+  // (native dialog defaulting to Documents) when available; else downloads it.
+  function saveSession() {
+    const text = JSON.stringify(snapshot(), null, 2);
+    const name = sessionFilename();
+    if (window.showSaveFilePicker) {
+      return window.showSaveFilePicker({ suggestedName: name, startIn: 'documents', types: SESSION_TYPES })
+        .then((handle) => handle.createWritable()
+          .then((w) => w.write(text).then(() => w.close()))
+          .then(() => ({ ok: true, method: 'picker', name: handle.name })))
+        .catch((e) => {
+          if (e && e.name === 'AbortError') return { ok: false, cancelled: true };
+          downloadText(text, name);
+          return { ok: true, method: 'download', name };
+        });
+    }
+    downloadText(text, name);
+    return Promise.resolve({ ok: true, method: 'download', name });
+  }
+
+  // Load a session, replacing current progress (clean switch between users).
+  function loadSession() {
+    if (window.showOpenFilePicker) {
+      return window.showOpenFilePicker({
+        startIn: 'documents', multiple: false,
+        types: [{ description: 'KCNA Prep session', accept: { 'application/json': ['.seanyprep', '.json'] } }],
+      })
+        .then(([handle]) => handle.getFile())
+        .then((file) => file.text())
+        .then((text) => importFromText(text, { replace: true }))
+        .catch((e) => (e && e.name === 'AbortError') ? { ok: false, cancelled: true } : { ok: false, error: 'Could not open the file.' });
+    }
+    // Fallback: hidden file input (folder is the browser's default).
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.seanyprep,application/json,.json';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', () => {
+        const f = input.files && input.files[0];
+        if (!f) { input.remove(); resolve({ ok: false, cancelled: true }); return; }
+        const reader = new FileReader();
+        reader.onload = () => { input.remove(); resolve(importFromText(String(reader.result), { replace: true })); };
+        reader.onerror = () => { input.remove(); resolve({ ok: false, error: 'Could not read the file.' }); };
+        reader.readAsText(f);
+      });
+      input.click();
+    });
+  }
+
   function resetProgress() {
     // Clear study progress but KEEP user settings (theme, exam date).
     const keep = Store.get(KEY, {});
@@ -116,6 +181,7 @@ window.Settings = (function () {
 
   return {
     get, set, onChange, apply, applyTheme, applyMeta, effectiveTheme,
-    examDate, planStart, exportToFile, importFromText, resetProgress, resetAll,
+    examDate, planStart, importFromText, resetProgress, resetAll,
+    saveSession, loadSession, sessionFilename,
   };
 })();
