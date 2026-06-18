@@ -32,7 +32,10 @@ window.Flashcards = (function () {
       c.due = now() + c.interval * ONE_DAY;
     }
     save(s);
-    if (window.Progress && Progress.recordStudyDay) Progress.recordStudyDay();
+    if (window.Progress) {
+      if (Progress.recordStudyDay) Progress.recordStudyDay();
+      if (Progress.recordCard) Progress.recordCard(grade >= 2); // good/easy = knew it
+    }
     return c;
   }
 

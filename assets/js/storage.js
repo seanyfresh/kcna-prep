@@ -49,6 +49,18 @@ window.Progress = (function () {
   function history() { return Store.get('examHistory', []); }
   function stats() { return load(); }
 
+  /* ---------- flashcard accuracy (for adaptive difficulty) ---------- */
+  const CARD_KEY = 'cardStats';
+  function recordCard(correct) {
+    const c = Store.get(CARD_KEY, { answered: 0, correct: 0 });
+    c.answered += 1; if (correct) c.correct += 1;
+    Store.set(CARD_KEY, c);
+  }
+  function cardStats() {
+    const c = Store.get(CARD_KEY, { answered: 0, correct: 0 });
+    return { answered: c.answered, correct: c.correct, acc: c.answered ? c.correct / c.answered : 0 };
+  }
+
   /* ---------- study streak ---------- */
   const STREAK_KEY = 'streak';
   function dayStr(d) {
@@ -78,5 +90,5 @@ window.Progress = (function () {
     return s;
   }
 
-  return { recordAnswers, recordExam, history, stats, recordStudyDay, streak };
+  return { recordAnswers, recordExam, history, stats, recordStudyDay, streak, recordCard, cardStats };
 })();

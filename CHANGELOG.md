@@ -9,7 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
-## [1.4.0] - 2026-06-17
+## [1.5.0] - 2026-06-17
+
+### Changed
+- **No more first-run onboarding modal.** Returning users (who load a session
+  file) are no longer interrupted. Pick your difficulty from a new **difficulty
+  button in the top bar** instead — it opens New / Some / Experienced and marks
+  the current choice.
+- **Study plans no longer display a total-week count.** Plans are still designed
+  to different depths internally, but the headline "N-week plan" is hidden so it
+  doesn't conflict with the hard Oct 1 deadline.
+
+### Added
+- **Adaptive difficulty** — when you're scoring well on both practice questions
+  (≥85%) and flashcards (≥80%), the app offers to bump you up a level. Asked at
+  most once per level; flashcard accuracy is now tracked to power this.
 
 ### Added
 - **Experience-level personalization** — a first-run prompt (and a Settings
@@ -122,7 +136,8 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...v1.3.0

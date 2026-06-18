@@ -386,6 +386,7 @@
       '<div class="btn-row center mt" style="justify-content:center">' +
       '<a class="btn primary" href="#/cards">More flashcards</a>' +
       '<a class="btn" href="#/practice">Practice questions</a></div></div>');
+    maybeSuggestLevelUp();
   }
 
   /* ================= PRACTICE / EXAMS ================= */
@@ -534,6 +535,7 @@
       '<div class="btn-row mt-lg"><a class="btn primary" href="#/practice">Another round</a>' +
         '<a class="btn" href="#/readiness">Readiness</a><a class="btn" href="#/dashboard">Dashboard</a></div>' +
       '<h2 style="margin:26px 0 12px">Review all ' + res.total + ' questions</h2>' + review);
+    maybeSuggestLevelUp();
   }
 
   /* ================= READINESS ================= */
@@ -613,7 +615,7 @@
       '<div class="card approach-card" style="margin-bottom:18px"><div class="spread wrap"><div>' +
         '<div class="eyebrow">Tailored for · ' + esc(ap.label) + '</div>' +
         '<p class="muted" style="margin:2px 0 0;max-width:62ch">' + esc(ap.blurb) + '</p></div>' +
-        '<div class="approach-meta"><span class="pill accent">' + plan.weeks.length + '-week plan</span><span class="pill">' + esc(ap.hours) + '</span></div>' +
+        '<div class="approach-meta"><span class="pill accent">' + esc(ap.hours) + '</span></div>' +
       '</div><div class="btn-row mt"><a class="btn sm ghost" href="#/settings">Change level ›</a></div></div>' +
       '<div class="card" style="margin-bottom:18px"><div class="spread"><strong>Overall progress</strong><span>' + pct + '%</span></div><div class="mt">' + bar(pct) + '</div>' +
       '<p class="muted mt" style="font-size:13px;margin-bottom:0">Check tasks off as you go — progress is saved on this device and feeds your dashboard.</p></div>' +
@@ -905,31 +907,92 @@
     });
   }
 
-  /* ================= ONBOARDING (experience level) ================= */
-  function showOnboarding() {
-    if (document.getElementById('onboarding-overlay')) return;
+  /* ================= DIFFICULTY MENU (experience level) ================= */
+  const LEVEL_OPTS = [
+    ['none', 'New to Kubernetes', 'Start from the basics'],
+    ['light', 'Some experience', 'Reinforce the fundamentals'],
+    ['heavy', 'Experienced', 'Diagnose-first · harder questions'],
+  ];
+  function closeLevelMenu() {
+    const m = document.getElementById('level-menu'); if (m) m.remove();
+    const b = $('#level-btn'); if (b) b.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', outsideLevelClick);
+    document.removeEventListener('keydown', levelMenuKey);
+  }
+  function outsideLevelClick(e) {
+    const m = document.getElementById('level-menu'); const b = $('#level-btn');
+    if (m && !m.contains(e.target) && b && !b.contains(e.target)) closeLevelMenu();
+  }
+  function levelMenuKey(e) {
+    if (e.key === 'Escape') { closeLevelMenu(); const b = $('#level-btn'); if (b) b.focus(); }
+  }
+  function toggleLevelMenu() {
+    if (document.getElementById('level-menu')) { closeLevelMenu(); return; }
+    const btn = $('#level-btn');
+    const cur = Settings.level();
+    const menu = document.createElement('div');
+    menu.id = 'level-menu'; menu.className = 'menu menu-wide'; menu.setAttribute('role', 'menu');
+    menu.innerHTML = '<div class="menu-head">Difficulty</div>' + LEVEL_OPTS.map(function (o) {
+      const on = o[0] === cur;
+      return '<button role="menuitemradio" aria-checked="' + (on ? 'true' : 'false') + '" data-setlevel="' + o[0] + '" class="' + (on ? 'cur' : '') + '">' +
+        '<span class="menu-check" aria-hidden="true">' + (on ? '✓' : '') + '</span>' +
+        '<span class="menu-main"><strong>' + o[1] + '</strong><span class="menu-sub">' + o[2] + '</span></span></button>';
+    }).join('');
+    btn.parentNode.appendChild(menu);
+    btn.setAttribute('aria-expanded', 'true');
+    on('#level-menu [data-setlevel]', 'click', function () {
+      const v = this.getAttribute('data-setlevel');
+      const label = this.querySelector('strong').textContent;
+      closeLevelMenu();
+      Settings.set({ level: v });
+      updateChrome(); route();
+      appToast('Difficulty: ' + label);
+    });
+    setTimeout(function () { document.addEventListener('click', outsideLevelClick); }, 0);
+    document.addEventListener('keydown', levelMenuKey);
+    const c = menu.querySelector('.cur') || menu.querySelector('button'); if (c) c.focus();
+  }
+
+  /* ---- Adaptive difficulty: offer to level up when performance is strong ---- */
+  function maybeSuggestLevelUp() {
+    if (!window.Settings) return;
+    const lvl = Settings.level();
+    if (lvl === 'heavy') return;                 // already at the top
+    const asked = Store.get('levelUpAsked', {});
+    if (asked[lvl]) return;                       // only offer once per level
+    // practice/exam signal
+    const stats = Progress.stats();
+    let answered = 0, correct = 0;
+    Object.keys(stats).forEach(function (k) { answered += stats[k].answered || 0; correct += stats[k].correct || 0; });
+    const pAcc = answered ? correct / answered : 0;
+    // flashcard signal
+    const cs = (Progress.cardStats) ? Progress.cardStats() : { answered: 0, acc: 0 };
+    const strongPractice = answered >= 20 && pAcc >= 0.85;
+    const strongCards = cs.answered >= 15 && cs.acc >= 0.80;
+    if (strongPractice && strongCards) showLevelUpPrompt(lvl);
+  }
+  function showLevelUpPrompt(curLevel) {
+    if (document.getElementById('levelup-overlay')) return;
+    const next = curLevel === 'none' ? 'light' : 'heavy';
+    const nextLabel = next === 'heavy' ? 'Experienced' : 'Some experience';
+    const asked = Store.get('levelUpAsked', {}); asked[curLevel] = true; Store.set('levelUpAsked', asked);
     const ov = document.createElement('div');
-    ov.className = 'search-overlay'; ov.id = 'onboarding-overlay';
-    const opt = (val, title, sub) =>
-      '<button class="level-choice" data-level="' + val + '"><strong>' + title + '</strong><span>' + sub + '</span></button>';
-    ov.innerHTML = '<div class="search-box onboard-box" role="dialog" aria-label="Choose your experience level">' +
-      '<h2 style="margin:2px 4px 6px">Welcome to KCNA Prep 👋</h2>' +
-      '<p class="muted" style="margin:0 4px 14px">How familiar are you with Kubernetes? We\'ll tailor your study plan, flashcards, and question difficulty. You can change this anytime in Settings.</p>' +
-      '<div class="level-choices">' +
-        opt('none', 'New to Kubernetes', 'Start from the basics · gentle ~12-week plan') +
-        opt('light', 'Some experience', 'Reinforce the fundamentals · ~11-week plan') +
-        opt('heavy', 'Experienced', 'Diagnose-first · accelerated ~7-week plan') +
+    ov.className = 'search-overlay'; ov.id = 'levelup-overlay';
+    ov.innerHTML = '<div class="search-box onboard-box" role="dialog" aria-label="Level up?">' +
+      '<h2 style="margin:2px 4px 6px">🚀 You\'re on a roll!</h2>' +
+      '<p class="muted" style="margin:0 4px 16px">You\'ve been scoring high on practice and flashcards. Want to step up to <strong>' + esc(nextLabel) + '</strong> — harder questions and type-the-answer flashcards?</p>' +
+      '<div class="btn-row" style="justify-content:flex-end">' +
+        '<button class="btn ghost" data-lvlup="no">Keep current</button>' +
+        '<button class="btn primary" data-lvlup="yes">Yes, level up</button>' +
       '</div></div>';
     document.body.appendChild(ov);
-    on('#onboarding-overlay [data-level]', 'click', function () {
-      Settings.set({ level: this.getAttribute('data-level') });
-      ov.remove(); updateChrome(); route();
+    on('#levelup-overlay [data-lvlup]', 'click', function () {
+      const yes = this.getAttribute('data-lvlup') === 'yes';
+      ov.remove();
+      if (yes) { Settings.set({ level: next }); updateChrome(); route(); appToast('Difficulty bumped to ' + nextLabel + ' 💪'); }
     });
-    ov.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { Settings.set({ level: 'light' }); ov.remove(); updateChrome(); route(); }
-    });
-    ov.tabIndex = -1;
-    const first = ov.querySelector('.level-choice'); if (first) first.focus(); else ov.focus();
+    ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.remove(); });
+    ov.tabIndex = -1; ov.focus();
   }
 
   /* ================= KEYBOARD SHORTCUTS ================= */
@@ -1043,6 +1106,7 @@
   $('#nav-toggle').addEventListener('click', () => toggleNav());
   $('#search-btn').addEventListener('click', openSearch);
   $('#session-btn').addEventListener('click', toggleSessionMenu);
+  $('#level-btn').addEventListener('click', toggleLevelMenu);
   appEl.addEventListener('click', function (e) {
     const t = e.target.closest && e.target.closest('[data-act="reload"]');
     if (t) location.reload();
@@ -1051,6 +1115,4 @@
   if (window.Settings) Settings.apply();
   updateChrome();
   route();
-  // First run for this person: ask their Kubernetes experience to tailor everything.
-  if (window.Settings && Settings.get().level == null) showOnboarding();
 })();

@@ -216,7 +216,7 @@ window.StudyPlan = (function () {
       blurb: 'Start from the ground up. Build a mental model first and lean on flashcards — you have buffer before Oct 1, so don\'t rush the fundamentals (44% of the exam).' },
     light: { label: 'Some experience', hours: '4–6 hrs/week',
       blurb: 'You know the basics. Reinforce fundamentals, then drill the heavier Orchestration (28%) and Delivery (16%) domains and sit mocks.' },
-    heavy: { label: 'Experienced', hours: '2–4 hrs/week (accelerated)',
+    heavy: { label: 'Experienced', hours: '2–4 hrs/week',
       blurb: 'Diagnose first, then target gaps. Hands-on folks often lose points on CNCF ecosystem/governance trivia and exact terminology — focus there, and practice questions lean harder for you.' },
   };
 

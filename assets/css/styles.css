@@ -479,18 +479,15 @@ a:focus-visible, button:focus-visible, .btn:focus-visible, .option:focus-visible
 }
 .pwa-toast-x { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 13px; }
 
-/* ---------- Onboarding (experience level) ---------- */
-.onboard-box { width: min(560px, 96vw); }
-.level-choices { display: grid; gap: 10px; }
-.level-choice {
-  display: flex; flex-direction: column; gap: 2px; text-align: left;
-  background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
-  border-radius: 11px; padding: 14px 16px; cursor: pointer; font-family: inherit;
-}
-.level-choice strong { font-size: 15px; }
-.level-choice span { font-size: 12.5px; color: var(--text-dim); }
-.level-choice:hover, .level-choice:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+/* ---------- Difficulty menu + level-up dialog ---------- */
+.onboard-box { width: min(540px, 96vw); }
 .approach-card .approach-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.menu.menu-wide { min-width: 252px; }
+.menu .menu-head { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text-faint); padding: 6px 14px 4px; }
+.menu button.cur { background: var(--accent-soft); }
+.menu button .menu-check { width: 14px; flex: none; color: var(--accent-2); font-weight: 700; }
+.menu button .menu-main { display: flex; flex-direction: column; gap: 1px; }
+.menu button .menu-sub { font-size: 12px; color: var(--text-dim); font-weight: 400; }
 
 /* ---------- Keyboard shortcuts list ---------- */
 .kbd-list { display: grid; gap: 9px; }
