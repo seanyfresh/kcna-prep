@@ -494,6 +494,20 @@ a:focus-visible, button:focus-visible, .btn:focus-visible, .option:focus-visible
 .kbd-row { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
 kbd { font-family: var(--mono); background: var(--panel-2); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 6px; padding: 2px 8px; font-size: 12.5px; }
 
+/* ---------- Progress report controls ---------- */
+.rp-controls .rp-fields { display: flex; gap: 16px; flex-wrap: wrap; }
+.rp-field { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-dim); }
+.rp-field span { font-weight: 600; }
+.rp-field .fc-input { min-width: 220px; }
+
+/* ---------- Print: show only the report ---------- */
+@media print {
+  .topbar, .appfoot, .skip-link, #route-status, .page-head, .rp-controls, .no-print, #app-toast, .pwa-toast { display: none !important; }
+  html, body { background: #fff !important; }
+  .app-main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  .rp-doc { box-shadow: none !important; border-radius: 0 !important; max-width: none !important; padding: 0 !important; }
+}
+
 /* ---------- Larger touch targets on mobile ---------- */
 @media (max-width: 600px) {
   .btn.sm { padding: 9px 14px; }

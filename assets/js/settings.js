@@ -2,8 +2,9 @@
    export/import/reset. Source of truth for preferences across the app. */
 window.Settings = (function () {
   const KEY = 'settings';
-  // level: null until the user chooses (triggers onboarding); else none|light|heavy.
-  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false, level: null };
+  // level: null until the user chooses; else none|light|heavy.
+  // reportName / examBookedDate feed the manager progress report.
+  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false, level: null, reportName: '', examBookedDate: null };
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   const listeners = [];
 

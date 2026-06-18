@@ -170,6 +170,7 @@
           '<a class="btn" href="#/cards">🃏 Flashcards' + (fc.due ? ' (' + fc.due + ' due)' : '') + '</a>' +
           '<a class="btn" href="#/practice?mock=1">📝 Full mock exam</a>' +
           '<a class="btn" href="#/practice">⚡ Quick practice</a>' +
+          '<a class="btn" href="#/report">📄 Progress report</a>' +
         '</div></div>'
     );
     bindPlanChecks();
@@ -570,7 +571,8 @@
         '<div class="domain-score"><span class="' + (h.pct >= KCNA.meta.passPct ? 'tag-easy' : 'tag-hard') + '">' + h.pct + '%</span></div></div>';
     }).join('') : '<p class="muted">No attempts yet. Take a quiz or mock to populate your history.</p>';
 
-    render('<div class="page-head"><h1>Readiness analysis</h1><p>An honest read on whether you are ready to pass the KCNA before the Oct 1 deadline.</p></div>' +
+    render('<div class="page-head"><div class="spread wrap"><div><h1>Readiness analysis</h1><p>An honest read on whether you are ready to pass the KCNA before the Oct 1 deadline.</p></div>' +
+      '<a class="btn" href="#/report">📄 Progress report</a></div></div>' +
       '<div class="hero">' +
         '<div class="card pad-lg"><div class="gauge-wrap">' + gauge(r.readiness, true) +
           '<div><span class="pill ' + r.levelClass + '">' + r.level + '</span>' +
@@ -1062,11 +1064,228 @@
     }
   }
 
+  /* ================= PROGRESS REPORT (for your manager) ================= */
+  // Self-contained styles — injected on-page (CSP allows inline <style>) and
+  // reused for the standalone HTML download so the file looks identical.
+  const REPORT_CSS =
+    ".rp-doc{background:#fff;color:#1a1a1a;max-width:840px;margin:0 auto;padding:40px 44px;border-radius:12px;box-shadow:0 12px 44px rgba(0,0,0,.28);font-family:'Montserrat',Arial,Helvetica,sans-serif;line-height:1.5}" +
+    ".rp-doc *{box-sizing:border-box}" +
+    ".rp-brand{display:flex;align-items:center;gap:13px;border-bottom:3px solid #7855fa;padding-bottom:16px;margin-bottom:18px}" +
+    ".rp-mark{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#9278fb,#5615be);color:#fff;display:grid;place-items:center;font-weight:800;font-size:21px;flex:none}" +
+    ".rp-title{font-size:21px;font-weight:800;margin:0;color:#131313}" +
+    ".rp-sub{color:#6a6a6a;font-size:12.5px;margin:2px 0 0}" +
+    ".rp-meta{display:flex;flex-wrap:wrap;gap:6px 26px;font-size:12.5px;color:#555;margin-bottom:20px}" +
+    ".rp-meta b{color:#131313}" +
+    ".rp-callout{background:#f3efff;border:1px solid #d9cdfb;border-left:4px solid #7855fa;border-radius:8px;padding:14px 16px;margin:0 0 22px;font-size:14.5px;color:#2a2150}" +
+    ".rp-verdict{font-weight:800;display:block;margin-bottom:3px;color:#3a1e8a}" +
+    ".rp-section{margin:22px 0}" +
+    ".rp-section h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:#7855fa;margin:0 0 12px}" +
+    ".rp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}" +
+    ".rp-stat{border:1px solid #e4e4ea;border-radius:9px;padding:12px 14px}" +
+    ".rp-n{font-size:21px;font-weight:800;color:#131313}" +
+    ".rp-l{font-size:11.5px;color:#6a6a6a;margin-top:2px}" +
+    ".rp-table{width:100%;border-collapse:collapse;font-size:13.5px}" +
+    ".rp-table th,.rp-table td{text-align:left;padding:8px 10px;border-bottom:1px solid #eee;vertical-align:middle}" +
+    ".rp-table th{color:#6a6a6a;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}" +
+    ".rp-table td.rp-num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}" +
+    ".rp-bar{height:8px;background:#ededf2;border-radius:99px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle;margin-right:8px}" +
+    ".rp-bar>span{display:block;height:100%;background:linear-gradient(90deg,#7855fa,#1fdde9)}" +
+    ".rp-bar.good>span{background:#2e9e5a}.rp-bar.warn>span{background:#c98a1a}.rp-bar.bad>span{background:#cc3f37}" +
+    ".rp-pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700}" +
+    ".rp-pill.good{background:#e4f6ec;color:#1c7a45}.rp-pill.warn{background:#fbf0d8;color:#8a610a}.rp-pill.bad{background:#fbe3e0;color:#b5352d}.rp-pill.muted{background:#eee;color:#666}" +
+    ".rp-foot{margin-top:26px;padding-top:14px;border-top:1px solid #eee;font-size:10.5px;color:#9a9a9a}";
+
+  function pct1(n, d) { return d ? Math.round((n / d) * 100) : 0; }
+  function rpBarCls(p) { return p >= 75 ? 'good' : p >= 55 ? 'warn' : 'bad'; }
+  function rpBar(p) { return '<span class="rp-bar ' + rpBarCls(p) + '"><span style="width:' + Math.max(2, p) + '%"></span></span>'; }
+
+  function gatherReportData() {
+    const r = Readiness.compute();
+    const cd = StudyPlan.countdown();
+    const plan = StudyPlan.build();
+    const hist = Progress.history();
+    const mocks = hist.filter((h) => h.mode === 'mock');
+    const bestMock = mocks.reduce((m, h) => Math.max(m, h.pct), 0);
+    const stats = Progress.stats();
+    let ans = 0, cor = 0;
+    Object.keys(stats).forEach((k) => { ans += stats[k].answered || 0; cor += stats[k].correct || 0; });
+    const fc = Flashcards.stats(null);
+    const st = Progress.streak();
+    const s = Settings.get();
+    const today = new Date();
+    return {
+      r, cd, plan, mocks, bestMock,
+      answered: ans, practiceAcc: pct1(cor, ans),
+      fc, streak: st,
+      name: (s.reportName || '').trim(),
+      booked: s.examBookedDate || null,
+      level: StudyPlan.approach().label,
+      dateStr: today.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }),
+      narrative: reportNarrative(r, cd.days),
+    };
+  }
+
+  function reportNarrative(r, days) {
+    if (r.totalAnswered < 20) {
+      return { verdict: 'Getting started', text: 'Baseline assessment is in progress. A reliable readiness estimate will firm up after the diagnostic and a bit more practice.' };
+    }
+    const margin = r.predictedScore - r.passPct;
+    const verdict = r.likelihood === 'High' ? 'On track to pass'
+      : r.likelihood === 'Moderate' ? 'On pace'
+      : r.likelihood === 'Building' ? 'Building toward readiness'
+      : 'Early progress';
+    const text = 'Current readiness is ' + r.readiness + '% with a predicted exam score of ~' + r.predictedScore +
+      '% against a ' + r.passPct + '% pass mark — ' +
+      (margin >= 0 ? margin + ' point' + (margin === 1 ? '' : 's') + ' above' : Math.abs(margin) + ' point' + (Math.abs(margin) === 1 ? '' : 's') + ' below') +
+      ' the line, with ' + days + ' day' + (days === 1 ? '' : 's') + ' before the deadline.';
+    return { verdict, text };
+  }
+
+  function buildReportDoc(d) {
+    const stat = (n, l) => '<div class="rp-stat"><div class="rp-n">' + n + '</div><div class="rp-l">' + l + '</div></div>';
+    const likeCls = d.r.likelihoodClass === 'good' ? 'good' : d.r.likelihoodClass === 'bad' ? 'bad' : d.r.likelihoodClass === 'warn' ? 'warn' : 'muted';
+    const assessed = d.r.totalAnswered >= 20;
+
+    const domainRows = d.r.perDomain.map((dm) => {
+      const has = dm.answered > 0;
+      return '<tr><td>' + esc(dm.name) + '</td><td class="rp-num">' + dm.weight + '%</td>' +
+        '<td>' + (has ? rpBar(dm.masteryPct) + dm.masteryPct + '%' : '<span class="rp-pill muted">not started</span>') + '</td>' +
+        '<td class="rp-num">' + dm.answered + '</td></tr>';
+    }).join('');
+
+    const mockRows = d.mocks.slice(0, 6).map((m) => {
+      const dt = new Date(m.date);
+      return '<tr><td>' + dt.toLocaleDateString() + '</td><td class="rp-num">' + m.pct + '%</td>' +
+        '<td><span class="rp-pill ' + (m.passed ? 'good' : 'warn') + '">' + (m.passed ? 'Pass' : 'Below pass') + '</span></td></tr>';
+    }).join('');
+
+    return '<div class="rp-doc" id="rp-doc">' +
+      '<div class="rp-brand"><div class="rp-mark">K</div><div><h1 class="rp-title">KCNA Certification — Progress Report</h1>' +
+        '<p class="rp-sub">Kubernetes &amp; Cloud Native Associate · prepared with KCNA Prep</p></div></div>' +
+      '<div class="rp-meta">' +
+        '<span>Prepared by <b id="rp-prepared">' + (d.name ? esc(d.name) : '—') + '</b></span>' +
+        '<span>Generated <b>' + esc(d.dateStr) + '</b></span>' +
+        '<span>Target <b>pass by ' + esc(d.cd.examLabel) + '</b></span>' +
+        '<span><b>' + d.cd.days + '</b> days remaining</span>' +
+        '<span>Exam <b id="rp-booked-val">' + (d.booked ? 'scheduled for ' + esc(d.booked) : 'not yet scheduled') + '</b></span>' +
+      '</div>' +
+      '<div class="rp-callout"><span class="rp-verdict">' + esc(d.narrative.verdict) + '</span>' + esc(d.narrative.text) + '</div>' +
+
+      '<div class="rp-section"><h2>Readiness</h2><div class="rp-grid">' +
+        stat(d.r.readiness + '%', 'Overall readiness') +
+        stat(assessed ? '~' + d.r.predictedScore + '%' : '—', 'Predicted exam score') +
+        stat('<span class="rp-pill ' + likeCls + '">' + esc(d.r.likelihood) + '</span>', 'Pass likelihood') +
+        stat(esc(d.level), 'Study track') +
+      '</div></div>' +
+
+      '<div class="rp-section"><h2>Study activity</h2><div class="rp-grid">' +
+        stat(d.answered, 'Questions answered') +
+        stat(d.answered ? d.practiceAcc + '%' : '—', 'Practice accuracy') +
+        stat(d.bestMock ? d.bestMock + '%' : '—', 'Best mock score') +
+        stat(d.mocks.length, 'Mock exams taken') +
+        stat(d.fc.mastered + ' / ' + d.fc.total, 'Flashcards mastered') +
+        stat(d.streak.current + (d.streak.current === 1 ? ' day' : ' days'), 'Current study streak') +
+        stat(d.plan.doneTasks + ' / ' + d.plan.totalTasks, 'Study-plan tasks done') +
+      '</div></div>' +
+
+      '<div class="rp-section"><h2>Domain mastery (by exam weight)</h2><table class="rp-table">' +
+        '<thead><tr><th>Domain</th><th class="rp-num">Weight</th><th>Mastery</th><th class="rp-num">Answered</th></tr></thead>' +
+        '<tbody>' + domainRows + '</tbody></table></div>' +
+
+      (d.mocks.length ? '<div class="rp-section"><h2>Mock exam history</h2><table class="rp-table">' +
+        '<thead><tr><th>Date</th><th class="rp-num">Score</th><th>Result</th></tr></thead><tbody>' + mockRows + '</tbody></table></div>' : '') +
+
+      '<div class="rp-foot">Generated by KCNA Prep — an independent study app. Progress reflects in-app practice and is self-reported; it is not affiliated with or endorsed by the CNCF, the Linux Foundation, or Nutanix.</div>' +
+      '</div>';
+  }
+
+  function buildReportText(d) {
+    const lines = [];
+    lines.push('KCNA Certification — Progress Report' + (d.name ? ' — ' + d.name : ''));
+    lines.push('Generated ' + d.dateStr);
+    lines.push('Target: pass by ' + d.cd.examLabel + ' (' + d.cd.days + ' days remaining)');
+    lines.push('Exam: ' + (d.booked ? 'scheduled for ' + d.booked : 'not yet scheduled'));
+    lines.push('');
+    lines.push(d.narrative.verdict + '. ' + d.narrative.text);
+    lines.push('');
+    lines.push('Readiness: ' + d.r.readiness + '%  |  Predicted score: ' + (d.r.totalAnswered >= 20 ? '~' + d.r.predictedScore + '%' : 'n/a') + '  |  Pass likelihood: ' + d.r.likelihood);
+    lines.push('Questions answered: ' + d.answered + (d.answered ? ' (' + d.practiceAcc + '% correct)' : ''));
+    lines.push('Best mock score: ' + (d.bestMock ? d.bestMock + '%' : 'n/a') + ' across ' + d.mocks.length + ' mock exam(s)');
+    lines.push('Flashcards mastered: ' + d.fc.mastered + ' / ' + d.fc.total + '  |  Study streak: ' + d.streak.current + ' days');
+    lines.push('Study plan: ' + d.plan.doneTasks + ' / ' + d.plan.totalTasks + ' tasks done');
+    lines.push('');
+    lines.push('Domain mastery (by exam weight):');
+    d.r.perDomain.forEach((dm) => {
+      lines.push('  - ' + dm.name + ' (' + dm.weight + '%): ' + (dm.answered ? dm.masteryPct + '%' : 'not started'));
+    });
+    return lines.join('\n');
+  }
+
+  function buildStandaloneHtml(d) {
+    return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>KCNA Progress Report' + (d.name ? ' — ' + esc(d.name) : '') + '</title>' +
+      '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">' +
+      '<style>body{margin:0;background:#eceef3;padding:24px}' + REPORT_CSS +
+      '@media print{body{background:#fff;padding:0}.rp-doc{box-shadow:none;border-radius:0;max-width:none}}</style></head>' +
+      '<body>' + buildReportDoc(d) + '</body></html>';
+  }
+
+  function reportFilename(name) {
+    const who = (name || 'You').replace(/[^\w \-]/g, '').trim() || 'You';
+    const stamp = new Date().toISOString().slice(0, 10);
+    return 'KCNA Progress Report - ' + who + ' - ' + stamp + '.html';
+  }
+  function rpMsg(text) { const el = $('#rp-msg'); if (el) el.innerHTML = '<span class="pill good">' + esc(text) + '</span>'; }
+
+  function refreshReportDoc() {
+    const cur = document.getElementById('rp-doc');
+    if (cur) cur.outerHTML = buildReportDoc(gatherReportData());
+  }
+
+  function viewReport() {
+    if (!KCNA.ready()) return render(notReady());
+    const d = gatherReportData();
+    render('<div class="page-head no-print"><h1>Progress report</h1><p>A clean summary for your manager — print it, download it to email, or copy a text version.</p></div>' +
+      '<style>' + REPORT_CSS + '</style>' +
+      '<div class="card rp-controls no-print"><div class="rp-fields">' +
+        '<label class="rp-field"><span>Prepared by</span><input id="rp-name" class="fc-input" placeholder="Your name" autocomplete="name" value="' + esc(d.name) + '"></label>' +
+        '<label class="rp-field"><span>Exam scheduled for (optional)</span><input id="rp-booked" type="date" class="fc-input" value="' + esc(d.booked || '') + '"></label>' +
+      '</div>' +
+      '<div class="btn-row mt"><button class="btn primary" id="rp-print">🖨️ Print / Save as PDF</button>' +
+        '<button class="btn" id="rp-download">⬇️ Download (.html)</button>' +
+        '<button class="btn" id="rp-copy">📋 Copy summary</button></div>' +
+      '<div id="rp-msg" class="mt" aria-live="polite"></div></div>' +
+      buildReportDoc(d));
+
+    $('#rp-name').addEventListener('input', function () { Settings.set({ reportName: this.value }); refreshReportDoc(); });
+    $('#rp-booked').addEventListener('change', function () { Settings.set({ examBookedDate: this.value || null }); refreshReportDoc(); });
+    $('#rp-print').addEventListener('click', function () { window.print(); });
+    $('#rp-download').addEventListener('click', function () {
+      const data = gatherReportData();
+      const blob = new Blob([buildStandaloneHtml(data)], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = reportFilename(data.name);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      rpMsg('Report downloaded.');
+    });
+    $('#rp-copy').addEventListener('click', function () {
+      const text = buildReportText(gatherReportData());
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { rpMsg('Summary copied to clipboard.'); },
+          function () { rpMsg('Copy failed — select the downloaded file instead.'); });
+      } else { rpMsg('Clipboard not available — use Download instead.'); }
+    });
+  }
+
   /* ================= ROUTER ================= */
   const ROUTE_TITLES = {
     dashboard: 'Dashboard', learn: 'Learn', note: 'Study note', cards: 'Flashcards',
     practice: 'Practice', readiness: 'Readiness', plan: 'Study plan',
-    reference: 'Reference & knowledge base', settings: 'Settings',
+    reference: 'Reference & knowledge base', settings: 'Settings', report: 'Progress report',
   };
 
   function route() {
@@ -1088,6 +1307,7 @@
       case 'plan': viewPlan(); break;
       case 'reference': viewReference(r.params); break;
       case 'settings': viewSettings(); break;
+      case 'report': viewReport(); break;
       default: viewDashboard();
     }
     // Move focus to main and announce the route for assistive tech.

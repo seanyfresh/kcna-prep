@@ -12,6 +12,19 @@ _Nothing yet._
 
 > 😴 *The changelog naps. It has earned it.*
 
+## [1.6.0] - 2026-06-17
+
+### Added
+- **Progress report for your manager** — a new **Progress report** page (linked
+  from the dashboard and Readiness) generates a clean, professional one-pager:
+  a plain-language readiness verdict, predicted score vs. the pass mark, domain
+  mastery by exam weight, study activity, and mock-exam history. Add your name and
+  (optionally) your scheduled exam date, then **Print / Save as PDF**, **download a
+  standalone `.html` file** to email, or **copy a text summary** to paste into chat.
+
+> 🧑‍💼 *Why: "are you actually studying?" deserves a one-click answer. Hand the boss
+> a tidy PDF and reclaim your afternoons.*
+
 ## [1.5.0] - 2026-06-17
 
 ### Changed
@@ -169,7 +182,8 @@ make it production-ready and easy for anyone to run.
 > 🌱 *Why: it set out to be a humble study app and woke up with CI, a threat model,
 > and a Dockerfile. They grow up so fast.*
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...v1.3.1
