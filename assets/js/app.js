@@ -44,7 +44,7 @@
   function gauge(pct, big) {
     const r = 60, c = 2 * Math.PI * r;
     const off = c * (1 - pct / 100);
-    const col = pct >= 75 ? '#2ea96b' : pct >= 55 ? '#d9a219' : pct >= 1 ? '#e5534b' : '#3a4a63';
+    const col = pct >= 75 ? '#92dd23' : pct >= 55 ? '#ff9178' : pct >= 1 ? '#e14e35' : '#3a3a40';
     const size = big ? 150 : 110;
     return '<div class="gauge" role="img" aria-label="Readiness ' + pct + ' percent" style="width:' + size + 'px;height:' + size + 'px">' +
       '<svg viewBox="0 0 150 150" width="' + size + '" height="' + size + '" aria-hidden="true" focusable="false">' +

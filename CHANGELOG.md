@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [1.1.0] - 2026-06-17
+
+### Changed
+- **Visual redesign styled after the Nutanix brand guidelines** so the app feels
+  familiar to Nutanix colleagues (this is an independent study app, not a Nutanix
+  product, and it does not use the Nutanix logo or wordmark):
+  - **Color system** — Iris Purple (`#7855FA`) primary on Charcoal Gray
+    (`#131313`), with Aqua Blue, Mantis Green, and Peach Pink accents. Both the
+    dark and light themes were re-derived from the official palette.
+  - **Typography** — switched to **Montserrat** (the Nutanix brand typeface) with
+    Arial as the system fallback.
+  - Recolored the app icon, favicon, PWA/maskable icons, and `theme-color`.
+- Bumped the service-worker cache to `v1.1.0` so returning users get the refresh.
+
 ## [1.0.0] - 2026-06-17
 
 The first packaged, enterprise-grade release. Everything below ships in one go:
@@ -57,5 +71,6 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/seanyfresh/kcna-prep/releases/tag/v1.0.0

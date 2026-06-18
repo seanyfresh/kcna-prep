@@ -31,7 +31,7 @@ window.Settings = (function () {
     document.documentElement.setAttribute('data-theme', effectiveTheme(s));
     document.documentElement.classList.toggle('reduce-motion', s.reducedMotion === 'on');
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', effectiveTheme(s) === 'light' ? '#f4f6fb' : '#0d1117');
+    if (meta) meta.setAttribute('content', effectiveTheme(s) === 'light' ? '#f7f7f8' : '#131313');
   }
 
   // Push configurable exam date / plan start into the content meta so the

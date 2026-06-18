@@ -12,7 +12,7 @@ Study notes · spaced-repetition flashcards · weighted mock exams · honest rea
 [![Deploy to Pages](https://github.com/seanyfresh/kcna-prep/actions/workflows/pages.yml/badge.svg)](https://github.com/seanyfresh/kcna-prep/actions/workflows/pages.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![No dependencies](https://img.shields.io/badge/dependencies-0-success)
-![PWA](https://img.shields.io/badge/PWA-installable%20%C2%B7%20offline-5b8def)
+![PWA](https://img.shields.io/badge/PWA-installable%20%C2%B7%20offline-7855fa)
 
 </div>
 
@@ -124,6 +124,13 @@ and the **[CHANGELOG](CHANGELOG.md)**.
 This app does **not** register you for the official exam. Book the KCNA at the
 [Linux Foundation](https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate-kcna/)
 with your own account when you're ready.
+
+## Look & feel
+
+The UI is **styled after the Nutanix brand guidelines** (Iris Purple on Charcoal,
+Montserrat) so it feels familiar to colleagues at Nutanix. This is an independent
+study app — it does **not** use the Nutanix logo or wordmark and is not affiliated
+with or endorsed by Nutanix; "Nutanix" is a trademark of Nutanix, Inc.
 
 ## License & disclaimer
 
