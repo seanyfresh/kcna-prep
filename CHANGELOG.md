@@ -12,6 +12,18 @@ _Nothing yet._
 
 > 😴 *The changelog naps. It has earned it.*
 
+## [1.6.1] - 2026-06-17
+
+### Added
+- **Mock-score trend chart** in the progress report — a clean SVG line of your
+  mock-exam scores over time with the 75% pass mark drawn in, so a manager sees
+  the trajectory at a glance (renders in print and the downloaded file too).
+- **Footer links** across the app: **About**, **README**, **Contributors**, and
+  **Changelog**.
+
+> 📈 *Why: a line going up and to the right says more in one glance than a table
+> ever will — and now the footer admits where this thing actually lives.*
+
 ## [1.6.0] - 2026-06-17
 
 ### Added
@@ -182,7 +194,8 @@ make it production-ready and easy for anyone to run.
 > 🌱 *Why: it set out to be a humble study app and woke up with CI, a threat model,
 > and a Dockerfile. They grow up so fast.*
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/seanyfresh/kcna-prep/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...v1.4.0
