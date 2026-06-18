@@ -400,7 +400,23 @@ a:focus-visible, button:focus-visible, .btn:focus-visible, .option:focus-visible
   cursor: pointer; font-size: 16px; text-decoration: none; line-height: 1;
 }
 .icon-btn:hover { border-color: var(--accent); background: var(--accent-soft); text-decoration: none; }
-.offline-pill { white-space: nowrap; }
+/* Fixed width so the button never resizes as the level name changes length. */
+.level-btn {
+  width: 152px; height: 38px; padding: 0 12px;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  gap: 1px; line-height: 1.12; overflow: hidden;
+}
+.level-btn .level-pre { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+.level-btn .level-label { font-size: 12.5px; font-weight: 700; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) {
+  /* Narrow screens: let the action cluster wrap to its own row so the fixed-width
+     difficulty button never has to compete with the icons (or get squeezed). */
+  .topbar { flex-wrap: wrap; row-gap: 8px; }
+  .topbar-actions { width: 100%; justify-content: flex-end; }
+  .topbar .nav-toggle { margin-left: 0; }
+  .level-btn { width: 132px; padding: 0 9px; }
+  .level-btn .level-label { font-size: 11.5px; }
+}
 .gauge-track { stroke: var(--panel-2); }
 
 /* ---------- Dropdown menu (Save / Load session) ---------- */
@@ -502,6 +518,32 @@ kbd { font-family: var(--mono); background: var(--panel-2); border: 1px solid va
 .rp-field { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-dim); }
 .rp-field span { font-weight: 600; }
 .rp-field .fc-input { min-width: 220px; }
+
+/* ---------- Prose (README / Changelog / About) ---------- */
+.prose { line-height: 1.65; color: var(--text); }
+.prose > *:first-child { margin-top: 0; }
+.prose h1, .prose h2, .prose h3, .prose h4 { letter-spacing: -0.2px; margin: 22px 0 10px; line-height: 1.25; }
+.prose h1 { font-size: 23px; } .prose h2 { font-size: 19px; } .prose h3 { font-size: 16px; } .prose h4 { font-size: 14px; }
+.prose p { margin: 0 0 12px; }
+.prose ul, .prose ol { margin: 0 0 12px; padding-left: 22px; }
+.prose li { margin: 4px 0; }
+.prose a { color: var(--accent-2); }
+.prose code { font-family: var(--mono); font-size: 0.88em; background: var(--panel-2); padding: 1px 5px; border-radius: 5px; }
+.prose pre { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto; margin: 0 0 14px; }
+.prose pre code { background: none; padding: 0; }
+.prose blockquote { margin: 0 0 14px; padding: 8px 14px; border-left: 3px solid var(--accent); color: var(--text-dim); background: var(--accent-soft); border-radius: 0 8px 8px 0; }
+.prose hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.prose-table-wrap { overflow-x: auto; margin: 0 0 14px; }
+.prose-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.prose-table th, .prose-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.prose-table th { font-weight: 700; color: var(--text-dim); }
+
+/* ---------- Contributors ---------- */
+.contrib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.contrib { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+.contrib-avatar { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.contrib-name { font-weight: 700; }
+.contrib-role { font-size: 12.5px; color: var(--accent-2); margin: 1px 0 3px; }
 
 /* ---------- Print: show only the report ---------- */
 @media print {

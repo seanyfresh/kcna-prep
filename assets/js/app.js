@@ -93,6 +93,16 @@
       const c = KCNA.counts();
       $('#foot-stats').textContent = c.questions + ' questions · ' + c.flashcards + ' flashcards · ' + c.notes + ' notes';
     }
+    // Show the active difficulty in the top bar so users always know their level.
+    const lvl = (window.Settings && Settings.level) ? Settings.level() : 'light';
+    const opt = LEVEL_OPTS.find((o) => o[0] === lvl);
+    const ll = $('#level-label');
+    if (ll && opt) ll.textContent = opt[1];
+    const lb = $('#level-btn');
+    if (lb && opt) {
+      lb.title = 'Difficulty: ' + opt[1] + ' — click to change';
+      lb.setAttribute('aria-label', 'Difficulty: ' + opt[1] + ' — change');
+    }
   }
 
   /* ================= DASHBOARD ================= */
@@ -1328,10 +1338,134 @@
   }
 
   /* ================= ROUTER ================= */
+  /* ================= ABOUT / README / CONTRIBUTORS / CHANGELOG (in-app) ================= */
+  const REPO_URL = 'https://github.com/seanyfresh/kcna-prep';
+
+  function viewAbout() {
+    const v = (window.KCNA && KCNA.meta && KCNA.meta.version) || '';
+    render('<div class="page-head"><h1>About KCNA Prep</h1><p>A free, offline-capable study app for the Kubernetes &amp; Cloud Native Associate exam.</p></div>' +
+      '<div class="card prose">' +
+        '<p>KCNA Prep bundles exam-focused study notes, spaced-repetition flashcards, weighted practice and mock exams, an honest readiness model, a searchable knowledge base, and a deadline-aware study plan — all running entirely in your browser. Your progress is stored only on this device.</p>' +
+        '<p>It is an independent, open-source project, and is not affiliated with or endorsed by the CNCF, the Linux Foundation, or Nutanix.</p>' +
+      '</div>' +
+      '<div class="card mt"><div class="btn-row">' +
+        '<a class="btn" href="#/readme">📖 README</a>' +
+        '<a class="btn" href="#/changelog">🗒️ Changelog</a>' +
+        '<a class="btn" href="#/contributors">👥 Contributors</a>' +
+        '<a class="btn ghost" href="' + REPO_URL + '" target="_blank" rel="noopener noreferrer">View source on GitHub ↗</a>' +
+      '</div>' + (v ? '<p class="muted mt" style="font-size:13px;margin-bottom:0">Version ' + esc(v) + '</p>' : '') + '</div>');
+  }
+
+  const CONTRIBUTORS = [
+    { name: 'Sean (seanyfresh)', role: 'Creator & maintainer', note: 'Built and maintains KCNA Prep.' },
+    { name: 'Michael Gaspard', role: 'Security review', note: 'Prompted the CSRF / SSRF / XSS audit that hardened the app.' },
+    { name: 'Ross Davies', role: 'UX & product feedback', note: 'Proposed the top-bar difficulty indicator and dropping the unused Offline pill.' },
+  ];
+  function viewContributors() {
+    const cards = CONTRIBUTORS.map(function (c) {
+      const initial = esc((c.name.trim().charAt(0) || '?').toUpperCase());
+      return '<div class="contrib"><div class="contrib-avatar" aria-hidden="true">' + initial + '</div>' +
+        '<div><div class="contrib-name">' + esc(c.name) + '</div>' +
+        '<div class="contrib-role">' + esc(c.role) + '</div>' +
+        '<div class="muted" style="font-size:13px">' + esc(c.note) + '</div></div></div>';
+    }).join('');
+    render('<div class="page-head"><h1>Contributors</h1><p>KCNA Prep is built in the open. Thanks to everyone who has helped make it better.</p></div>' +
+      '<div class="card"><div class="contrib-grid">' + cards + '</div>' +
+        '<p class="muted mt" style="font-size:13px;margin-bottom:0">See the full commit history on <a href="' + REPO_URL + '/graphs/contributors" target="_blank" rel="noopener noreferrer">GitHub ↗</a>.</p></div>');
+  }
+
+  /* ---- minimal, escape-first Markdown renderer for the bundled .md files ---- */
+  function mdInline(raw) {
+    const codes = [], Z = String.fromCharCode(0);
+    let s = String(raw).replace(/`([^`]+)`/g, function (m, c) { codes.push(c); return Z + (codes.length - 1) + Z; });
+    s = esc(s);
+    s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, '');                       // drop images (badges are external / CSP-blocked)
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, function (m, txt, url) {
+      return '<a href="' + esc(safeUrl(url)) + '"' + (/^https?:/i.test(url) ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + txt + '</a>';
+    });
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+         .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+         .replace(/(^|[^\w*])_([^_\s][^_]*?)_(?=[^\w*]|$)/g, '$1<em>$2</em>');  // _emphasis_ (intraword-safe)
+    s = s.replace(new RegExp(Z + '(\\d+)' + Z, 'g'), function (m, i) { return '<code>' + esc(codes[+i]) + '</code>'; });
+    return s;
+  }
+  function mdToHtml(src) {
+    const lines = String(src).replace(/\r\n?/g, '\n').split('\n');
+    const N = lines.length;
+    const rawHtml = /^\s*<\/?(div|img|p|br|center|span|a|picture|source|table|tr|td|th|h[1-6])\b[^>]*>\s*$/i;
+    const badgeOnly = /^\s*\[?!\[[^\]]*\]\([^)]*\)\]?(\([^)]*\))?\s*$/;
+    const ulRe = /^\s*[-*]\s+(.*)$/, olRe = /^\s*\d+\.\s+(.*)$/;
+    const blank = function (l) { return /^\s*$/.test(l); };
+    // A line that begins a new block ends the current paragraph/list-item, so we
+    // know where to stop gathering soft-wrapped (hard-wrapped) continuation lines.
+    const startsBlock = function (l) {
+      return blank(l) || /^\s*```/.test(l) || /^\s*#{1,6}\s+/.test(l) ||
+        /^\s*([-*_])(\s*\1){2,}\s*$/.test(l) || /^\s*>\s?/.test(l) ||
+        ulRe.test(l) || olRe.test(l) || /^\s*\|.*\|\s*$/.test(l) ||
+        rawHtml.test(l) || badgeOnly.test(l);
+    };
+    let html = '', i = 0;
+    while (i < N) {
+      const line = lines[i];
+      if (/^\s*```/.test(line)) {                                     // fenced code block
+        i++; const code = [];
+        while (i < N && !/^\s*```/.test(lines[i])) { code.push(esc(lines[i])); i++; }
+        i++; html += '<pre><code>' + code.join('\n') + '</code></pre>'; continue;
+      }
+      if (rawHtml.test(line) || badgeOnly.test(line) || blank(line)) { i++; continue; } // strip / skip
+      if (/^\s*\|.*\|\s*$/.test(line) && i + 1 < N && /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(lines[i + 1])) {
+        const parseRow = function (l) { return l.trim().replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); }); };
+        const head = parseRow(line); i += 2; let body = '';
+        while (i < N && /^\s*\|.*\|\s*$/.test(lines[i])) {
+          body += '<tr>' + parseRow(lines[i]).map(function (c) { return '<td>' + mdInline(c) + '</td>'; }).join('') + '</tr>'; i++;
+        }
+        html += '<div class="prose-table-wrap"><table class="prose-table"><thead><tr>' +
+          head.map(function (c) { return '<th>' + mdInline(c) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+        continue;
+      }
+      let m;
+      if ((m = line.match(/^\s*(#{1,6})\s+(.*)$/))) { const lv = Math.min(m[1].length, 4); html += '<h' + lv + '>' + mdInline(m[2]) + '</h' + lv + '>'; i++; continue; }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { html += '<hr>'; i++; continue; }
+      if (/^\s*>\s?/.test(line)) {                                    // blockquote (gather lines)
+        const q = [];
+        while (i < N && /^\s*>\s?/.test(lines[i])) { q.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+        html += '<blockquote>' + mdInline(q.join(' ')) + '</blockquote>'; continue;
+      }
+      if (ulRe.test(line) || olRe.test(line)) {                       // list (gather items + soft-wrapped continuations)
+        const ordered = olRe.test(line), re = ordered ? olRe : ulRe;
+        let items = '', ml;
+        while (i < N && (ml = lines[i].match(re))) {
+          let text = ml[1]; i++;
+          while (i < N && !startsBlock(lines[i])) { text += ' ' + lines[i].trim(); i++; }
+          items += '<li>' + mdInline(text) + '</li>';
+        }
+        html += '<' + (ordered ? 'ol' : 'ul') + '>' + items + '</' + (ordered ? 'ol' : 'ul') + '>'; continue;
+      }
+      const para = [line]; i++;                                       // paragraph (gather soft-wrapped lines)
+      while (i < N && !startsBlock(lines[i])) { para.push(lines[i]); i++; }
+      html += '<p>' + mdInline(para.join(' ')) + '</p>';
+    }
+    return html;
+  }
+
+  let mdReq = 0;
+  function viewMarkdown(title, sub, file, ghUrl) {
+    const token = ++mdReq;
+    render('<div class="page-head"><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div>' +
+      '<div class="card"><div id="md-body" class="prose"><p class="muted">Loading…</p></div>' +
+      '<p class="muted mt" style="font-size:13px;margin-bottom:0">View the original on <a href="' + esc(ghUrl) + '" target="_blank" rel="noopener noreferrer">GitHub ↗</a>.</p></div>');
+    fetch(file).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (text) { if (token !== mdReq) return; const el = document.getElementById('md-body'); if (el) el.innerHTML = mdToHtml(text); })
+      .catch(function () { if (token !== mdReq) return; const el = document.getElementById('md-body'); if (el) el.innerHTML = '<p class="muted">This needs a connection to load. <a href="' + esc(ghUrl) + '" target="_blank" rel="noopener noreferrer">Open it on GitHub ↗</a>.</p>'; });
+  }
+  function viewReadme() { viewMarkdown('README', 'About this project, straight from the repository.', 'README.md', REPO_URL + '/blob/main/README.md'); }
+  function viewChangelog() { viewMarkdown('Changelog', 'Every notable change, newest first.', 'CHANGELOG.md', REPO_URL + '/blob/main/CHANGELOG.md'); }
+
   const ROUTE_TITLES = {
     dashboard: 'Dashboard', learn: 'Learn', note: 'Study note', cards: 'Flashcards',
     practice: 'Practice', readiness: 'Readiness', plan: 'Study plan',
     reference: 'Reference & knowledge base', settings: 'Settings', report: 'Progress report',
+    about: 'About', readme: 'README', contributors: 'Contributors', changelog: 'Changelog',
   };
 
   function route() {
@@ -1354,6 +1488,10 @@
       case 'reference': viewReference(r.params); break;
       case 'settings': viewSettings(); break;
       case 'report': viewReport(); break;
+      case 'about': viewAbout(); break;
+      case 'readme': viewReadme(); break;
+      case 'contributors': viewContributors(); break;
+      case 'changelog': viewChangelog(); break;
       default: viewDashboard();
     }
     // Move focus to main and announce the route for assistive tech.

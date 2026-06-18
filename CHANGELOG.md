@@ -12,6 +12,26 @@ _Nothing yet._
 
 > 😴 *The changelog naps. It has earned it.*
 
+## [1.7.0] - 2026-06-18
+
+### Added
+- **Your difficulty level is now shown in the top bar** — where the old "Offline"
+  chip used to be. New / Some / Experienced is always visible, so you know exactly
+  which difficulty you're practising at, and clicking it still opens the picker.
+- **About, README, Contributors, and Changelog now open inside the app** instead of
+  bouncing out to GitHub. README and Changelog render the project's own Markdown,
+  and a new **Contributors** page credits the people who've helped.
+
+### Changed
+- **Removed the top-bar "Offline" indicator** — it told you little you didn't
+  already know, and the spot is better used for your difficulty level.
+
+> 🧭 *Why: thanks to **Ross Davies** for both nudges — he breezed through a session
+> and said it was too easy (fair, but he couldn't tell which level he was on, so the
+> difficulty now lives in the chrome), and he called out the "Offline" pill as wasted
+> space. "About" quietly leaving the app for GitHub always felt like being shown the
+> door, too.*
+
 ## [1.6.2] - 2026-06-18
 
 ### Security
