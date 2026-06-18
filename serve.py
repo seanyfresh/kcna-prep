@@ -30,7 +30,8 @@ CSP = (
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
     "script-src 'self'; "
     "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; "
-    "manifest-src 'self'; worker-src 'self'; form-action 'none'"
+    "manifest-src 'self'; worker-src 'self'; form-action 'none'; "
+    "upgrade-insecure-requests"
 )
 
 

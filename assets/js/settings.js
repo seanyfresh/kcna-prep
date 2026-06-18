@@ -87,14 +87,27 @@ window.Settings = (function () {
     if (opts.replace) {
       Object.keys(localStorage).forEach((k) => { if (k.indexOf(PFX) === 0) localStorage.removeItem(k); });
     }
+    // Only restore keys this app actually writes, and only when the decoded value
+    // has the shape that key is meant to hold. Rejects unknown keys and corrupt or
+    // hostile shapes (e.g. a string where an object is expected) so a malformed
+    // import can't propagate into a render and crash it.
+    const SHAPES = {
+      settings: 'object', domainStats: 'object', srs: 'object', cardStats: 'object',
+      streak: 'object', levelUpAsked: 'object', plan: 'object', examHistory: 'array',
+      fcMode: 'string',
+    };
+    const shapeOf = (val) => Array.isArray(val) ? 'array' : (val === null ? 'null' : typeof val);
     let count = 0;
     Object.keys(parsed.data).forEach((k) => {
       const v = parsed.data[k];
-      if (typeof k === 'string' && typeof v === 'string' && v.length <= 1_000_000) {
-        try { JSON.parse(v); } catch (e) { return; } // each value must be JSON we wrote
-        localStorage.setItem(PFX + k, v);
-        count++;
-      }
+      if (typeof k !== 'string' || typeof v !== 'string' || v.length > 1_000_000) return;
+      const want = SHAPES[k];
+      if (!want) return;                                  // unknown key — skip
+      let val;
+      try { val = JSON.parse(v); } catch (e) { return; }  // each value must be JSON we wrote
+      if (shapeOf(val) !== want) return;                  // wrong shape — skip
+      localStorage.setItem(PFX + k, v);
+      count++;
     });
     apply();
     emit();

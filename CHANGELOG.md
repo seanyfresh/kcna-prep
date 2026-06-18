@@ -12,6 +12,31 @@ _Nothing yet._
 
 > 😴 *The changelog naps. It has earned it.*
 
+## [1.6.2] - 2026-06-18
+
+### Security
+- **Hardened session import.** Imported `.seanyprep` files are now checked against
+  a per-key allowlist and expected shape before anything is written to storage, and
+  `Progress.stats()` normalizes every entry on read — so a corrupt or hostile file
+  can no longer crash the Readiness, Report, or Dashboard views.
+- **Locked down link and report rendering.** All `href` links are escaped and
+  scheme-checked (`safeUrl()` permits only in-app routes and `http(s)`/`mailto`),
+  `esc()` now escapes single quotes too, mock-score values are coerced to numbers,
+  and the downloadable `.html` report ships with its own strict Content-Security-
+  Policy. `upgrade-insecure-requests` was added everywhere it was missing (local
+  dev server and the page `<meta>`).
+
+### Fixed
+- Removed dead code, debounced the report's "Prepared by" field so it no longer
+  rebuilds the whole document on every keystroke, and unified the two toast
+  notifications so an app toast and a PWA-update toast can't stack on top of
+  each other.
+
+> 🛡️ *Why: thanks to **Michael Gaspard** for the nudge to run a proper
+> CSRF / SSRF / XSS review. The verdict was reassuring — nothing exploitable on a
+> static, no-auth, local app — but a few latent sharp edges got sanded down anyway.
+> Belt, suspenders, and one more belt for luck.*
+
 ## [1.6.1] - 2026-06-17
 
 ### Added

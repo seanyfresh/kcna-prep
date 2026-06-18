@@ -21,9 +21,8 @@ window.PWA = (function () {
 
   /* ---- tiny toast/banner ---- */
   function toast(html, actionText, onAction) {
-    let bar = document.getElementById('pwa-toast');
-    if (bar) bar.remove();
-    bar = document.createElement('div');
+    document.querySelectorAll('.pwa-toast').forEach((n) => n.remove());
+    let bar = document.createElement('div');
     bar.id = 'pwa-toast';
     bar.className = 'pwa-toast';
     bar.setAttribute('role', 'status');

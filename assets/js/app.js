@@ -18,7 +18,14 @@
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  // Only allow in-app hash routes and http(s)/mailto links in an href; anything
+  // else (javascript:, data:, …) collapses to '#'. Defense-in-depth for any link
+  // that might ever come from user/imported data rather than a static template.
+  function safeUrl(u) {
+    u = String(u == null ? '' : u).trim();
+    return /^(#\/|https?:\/\/|mailto:)/i.test(u) ? u : '#';
   }
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -158,7 +165,7 @@
           '<p class="muted" style="margin:8px 0 12px">' + esc(cur.focus) + '</p>' +
           '<div>' + cur.tasks.map((t) =>
             '<div class="task ' + (t.done ? 'done' : '') + '"><input type="checkbox" data-task="' + t.id + '" ' + (t.done ? 'checked' : '') + '>' +
-            '<label>' + esc(t.text) + ' <a href="' + t.link + '">open ›</a></label></div>').join('') +
+            '<label>' + esc(t.text) + ' <a href="' + esc(safeUrl(t.link)) + '">open ›</a></label></div>').join('') +
           '</div>' +
           '<a class="btn sm mt" href="#/plan">Full study plan ›</a>' +
         '</div>' +
@@ -439,8 +446,6 @@
     renderQuestion();
   }
 
-  function immediateFeedback() { return session.mode === 'practice' || session.mode === 'diagnostic' ? session.mode === 'practice' : false; }
-
   function renderQuestion() {
     const q = session.questions[sIdx];
     const total = session.questions.length;
@@ -607,7 +612,7 @@
           '<div class="dates">' + w.range + ' · ' + w.doneCount + '/' + w.total + '</div></div>' +
         '<p class="faint" style="margin:0 0 10px;font-size:13px">🎯 ' + esc(w.goal) + '</p>' +
         w.tasks.map((t) => '<div class="task ' + (t.done ? 'done' : '') + '"><input type="checkbox" data-task="' + t.id + '" ' + (t.done ? 'checked' : '') + '>' +
-          '<label>' + esc(t.text) + (t.link ? ' <a href="' + t.link + '">open ›</a>' : '') + '</label></div>').join('') +
+          '<label>' + esc(t.text) + (t.link ? ' <a href="' + esc(safeUrl(t.link)) + '">open ›</a>' : '') + '</label></div>').join('') +
         '</div>';
     }).join('');
 
@@ -845,7 +850,7 @@
 
   /* ================= SESSION MENU (save / load) ================= */
   function appToast(msg) {
-    const old = document.getElementById('app-toast'); if (old) old.remove();
+    document.querySelectorAll('.pwa-toast').forEach((n) => n.remove());
     const t = document.createElement('div');
     t.id = 'app-toast'; t.className = 'pwa-toast'; t.setAttribute('role', 'status');
     const span = document.createElement('span'); span.textContent = msg; t.appendChild(span);
@@ -1138,7 +1143,8 @@
     const cd = StudyPlan.countdown();
     const plan = StudyPlan.build();
     const hist = Progress.history();
-    const mocks = hist.filter((h) => h.mode === 'mock');
+    const mocks = hist.filter((h) => h && h.mode === 'mock')
+      .map((h) => Object.assign({}, h, { pct: Number(h.pct) || 0, passed: !!h.passed }));
     const bestMock = mocks.reduce((m, h) => Math.max(m, h.pct), 0);
     const stats = Progress.stats();
     let ans = 0, cor = 0;
@@ -1257,6 +1263,7 @@
 
   function buildStandaloneHtml(d) {
     return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+      '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' data:; style-src \'unsafe-inline\' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri \'none\'; form-action \'none\'">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
       '<title>KCNA Progress Report' + (d.name ? ' — ' + esc(d.name) : '') + '</title>' +
       '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
@@ -1293,7 +1300,12 @@
       '<div id="rp-msg" class="mt" aria-live="polite"></div></div>' +
       buildReportDoc(d));
 
-    $('#rp-name').addEventListener('input', function () { Settings.set({ reportName: this.value }); refreshReportDoc(); });
+    let rpNameT;
+    $('#rp-name').addEventListener('input', function () {
+      const v = this.value;
+      clearTimeout(rpNameT);
+      rpNameT = setTimeout(function () { Settings.set({ reportName: v }); refreshReportDoc(); }, 250);
+    });
     $('#rp-booked').addEventListener('change', function () { Settings.set({ examBookedDate: this.value || null }); refreshReportDoc(); });
     $('#rp-print').addEventListener('click', function () { window.print(); });
     $('#rp-download').addEventListener('click', function () {

@@ -47,7 +47,22 @@ window.Progress = (function () {
   }
 
   function history() { return Store.get('examHistory', []); }
-  function stats() { return load(); }
+  // Hand consumers a normalized shape, even if localStorage was hand-edited or a
+  // corrupt session file was imported — a bad entry must never crash a render.
+  function stats() {
+    const raw = load();
+    if (!raw || typeof raw !== 'object') return {};
+    const out = {};
+    Object.keys(raw).forEach((id) => {
+      const e = raw[id] || {};
+      out[id] = {
+        answered: Number(e.answered) || 0,
+        correct: Number(e.correct) || 0,
+        recent: Array.isArray(e.recent) ? e.recent : [],
+      };
+    });
+    return out;
+  }
 
   /* ---------- flashcard accuracy (for adaptive difficulty) ---------- */
   const CARD_KEY = 'cardStats';
