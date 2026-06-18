@@ -4,10 +4,13 @@ All notable changes to **KCNA Prep** are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Each release lists what changed (seriously), then *why* (less seriously).
 
 ## [Unreleased]
 
 _Nothing yet._
+
+> 😴 *The changelog naps. It has earned it.*
 
 ## [1.5.0] - 2026-06-17
 
@@ -25,6 +28,13 @@ _Nothing yet._
   (≥85%) and flashcards (≥80%), the app offers to bump you up a level. Asked at
   most once per level; flashcard accuracy is now tracked to power this.
 
+> 🥋 *Why: nobody wants a "choose your fighter" screen on every launch, telling a
+> seasoned engineer they have "7 weeks" when the boss said "October" helps no one,
+> and if you're clearly smurfing the easy questions the app should have the decency
+> to notice and put you in the deep end.*
+
+## [1.4.0] - 2026-06-17
+
 ### Added
 - **Experience-level personalization** — a first-run prompt (and a Settings
   control) asks how familiar you are with Kubernetes, then tailors the app to
@@ -40,10 +50,18 @@ _Nothing yet._
     in multiple-choice (your explicit choice always wins).
   - **Guidance & tone** — the Plan and Readiness pages show level-specific advice.
 
+> 🎚️ *Why: one-size-fits-all fits no one. The person on day one and the person who
+> babysits prod clusters for a living should not get the same homework.*
+
+## [1.3.1] - 2026-06-17
+
 ### Changed
 - Deadline warning is now simply dismissible: removed the "Book exam" and
   "I've scheduled it" buttons in favor of a **✕ close** control in the top-right.
   Dismissal persists; re-show it via **Settings → Deadline & plan → Deadline warning**.
+
+> 🚪 *Why: two buttons walked into a banner. We showed them the ✕. The banner is
+> roomier and much calmer now.*
 
 ## [1.3.0] - 2026-06-17
 
@@ -58,6 +76,12 @@ _Nothing yet._
   page and an **"I've scheduled it"** action. The reminder escalates within 30
   days of the deadline and can be toggled in **Settings → Deadline & plan**.
 - A study-plan task to book the exam seat during mock-exam week.
+
+> ⏰ *Why: a company-wide deadline materialized, as they do. The app double-checked
+> and, no, it still cannot sit the exam on your behalf — so it will keep poking you
+> to book it yourself.*
+
+## [1.2.0] - 2026-06-17
 
 ### Added
 - **Save / Load session** menu in the top bar (save icon → "Save session…" /
@@ -74,6 +98,9 @@ _Nothing yet._
 - The separate **Export / Import progress** buttons in Settings — superseded by
   the top-bar Save / Load session menu (one consistent file flow).
 
+> 💾 *Why: "just use the same browser tab, everyone" is not multi-user support —
+> it's a group trust fall. Now each person clutches their own `.seanyprep` file.*
+
 ## [1.1.0] - 2026-06-17
 
 ### Changed
@@ -87,6 +114,9 @@ _Nothing yet._
     Arial as the system fallback.
   - Recolored the app icon, favicon, PWA/maskable icons, and `theme-color`.
 - Bumped the service-worker cache to `v1.1.0` so returning users get the refresh.
+
+> 🎨 *Why: so it feels like home for Nutanix colleagues — purple and all — minus
+> the actual logo, because trademark law is not whimsical.*
 
 ## [1.0.0] - 2026-06-17
 
@@ -135,6 +165,9 @@ make it production-ready and easy for anyone to run.
   `nginx.conf`), Netlify, Vercel, GitHub Pages, and cross-platform local launchers.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
+
+> 🌱 *Why: it set out to be a humble study app and woke up with CI, a threat model,
+> and a Dockerfile. They grow up so fast.*
 
 [Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.5.0...HEAD
 [1.5.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...v1.5.0
