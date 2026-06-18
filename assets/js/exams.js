@@ -26,8 +26,34 @@ window.Exams = (function () {
     };
   }
 
+  // Target difficulty mix by experience level (null = representative/random).
+  function levelProps(level) {
+    if (level === 'none') return { easy: 0.6, medium: 0.3, hard: 0.1 };
+    if (level === 'heavy') return { easy: 0.1, medium: 0.35, hard: 0.55 };
+    return null; // light: no bias
+  }
+  // Pick up to n questions from a pool. Unbiased → random. Biased → sample each
+  // difficulty toward the level's target mix, backfilling shortfalls so every
+  // difficulty can still appear and we always reach n when questions exist.
+  function pickFromPool(pool, n, bias) {
+    if (!bias) return shuffle(pool.slice()).slice(0, n);
+    const lvl = (window.Settings && Settings.level) ? Settings.level() : 'light';
+    const props = levelProps(lvl);
+    if (!props) return shuffle(pool.slice()).slice(0, n);
+    const buckets = { easy: [], medium: [], hard: [] };
+    shuffle(pool.slice()).forEach((q) => { (buckets[q.difficulty] || buckets.medium).push(q); });
+    const want = { easy: Math.round(n * props.easy), medium: Math.round(n * props.medium), hard: Math.round(n * props.hard) };
+    const out = [];
+    ['easy', 'medium', 'hard'].forEach((d) => { out.push.apply(out, buckets[d].splice(0, want[d])); });
+    if (out.length < n) {
+      const rest = shuffle([].concat(buckets.easy, buckets.medium, buckets.hard));
+      out.push.apply(out, rest.slice(0, n - out.length));
+    }
+    return shuffle(out).slice(0, n);
+  }
+
   // weighted selection across domains to mirror exam blueprint
-  function weightedPick(count) {
+  function weightedPick(count, bias) {
     const domains = KCNA.all();
     const totalW = KCNA.totalWeight() || 1;
     const picked = [];
@@ -46,8 +72,8 @@ window.Exams = (function () {
       diff += diff > 0 ? -1 : 1; idx++;
     }
     alloc.forEach(({ d, n }) => {
-      const pool = shuffle((d.questions || []).slice());
-      pool.slice(0, Math.max(0, n)).forEach((q) => {
+      const chosen = pickFromPool((d.questions || []).slice(), Math.max(0, n), bias);
+      chosen.forEach((q) => {
         if (!usedIds[q.id]) { usedIds[q.id] = 1; picked.push(Object.assign({}, q, { domainId: d.id, domainName: d.name })); }
       });
     });
@@ -63,31 +89,34 @@ window.Exams = (function () {
     return shuffle(picked);
   }
 
-  function domainPick(domainId, count) {
+  function domainPick(domainId, count, bias) {
     const d = KCNA.domain(domainId);
     if (!d) return [];
-    const pool = shuffle((d.questions || []).map((q) => Object.assign({}, q, { domainId: d.id, domainName: d.name })));
-    return pool.slice(0, count);
+    const mapped = (d.questions || []).map((q) => Object.assign({}, q, { domainId: d.id, domainName: d.name }));
+    return pickFromPool(mapped, count, bias);
   }
 
   // build a session: {mode, title, questions:[prepped], minutes}
   function build(opts) {
     let raw = [];
     let title = '', minutes = 0, mode = opts.mode || 'practice';
+    // Bias difficulty to the user's level ONLY for free practice — the diagnostic
+    // and mock stay representative so readiness/scores remain honest.
+    const bias = mode === 'practice';
     if (mode === 'mock') {
-      raw = weightedPick(KCNA.meta.examQuestions);
+      raw = weightedPick(KCNA.meta.examQuestions, false);
       title = 'Full Mock Exam';
       minutes = KCNA.meta.examMinutes;
     } else if (mode === 'diagnostic') {
-      raw = weightedPick(opts.count || 25);
+      raw = weightedPick(opts.count || 25, false);
       title = 'Diagnostic Assessment';
       minutes = 0;
     } else if (opts.domainId) {
-      raw = domainPick(opts.domainId, opts.count || 15);
+      raw = domainPick(opts.domainId, opts.count || 15, bias);
       title = (KCNA.domain(opts.domainId) || {}).name + ' — Practice';
       minutes = 0;
     } else {
-      raw = weightedPick(opts.count || 20);
+      raw = weightedPick(opts.count || 20, bias);
       title = 'Mixed Practice';
       minutes = 0;
     }

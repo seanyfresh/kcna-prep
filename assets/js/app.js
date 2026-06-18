@@ -237,7 +237,13 @@
     hard: { label: 'Hard', sub: 'Type the answer', pill: 'bad' },
     flip: { label: 'Flip', sub: 'Review only', pill: '' },
   };
-  function fcMode() { const m = Store.get('fcMode', 'easy'); return MODES[m] ? m : 'easy'; }
+  function fcMode() {
+    const m = Store.get('fcMode', null);
+    if (m && MODES[m]) return m; // respect an explicit choice
+    // default by experience: experienced users type answers, others get MC.
+    const lvl = (window.Settings && Settings.level) ? Settings.level() : 'light';
+    return lvl === 'heavy' ? 'hard' : 'easy';
+  }
 
   function viewCards(params) {
     if (!KCNA.ready()) return render(notReady());
@@ -546,6 +552,8 @@
     }).join('');
 
     const recs = [];
+    const ap = StudyPlan.approach();
+    recs.push('<strong>' + esc(ap.label) + ' track:</strong> ' + esc(ap.blurb) + ' <a href="#/settings">Change ›</a>');
     if (r.totalAnswered < 20) recs.push('Take the <a href="#/practice?diagnostic=1">25-question Diagnostic</a> to establish your baseline.');
     r.unassessed.forEach((d) => recs.push('You have not practiced <strong>' + esc(d.name) + '</strong> (' + d.weight + '% of the exam) yet — <a href="#/practice?domain=' + d.id + '">start a quiz ›</a>'));
     r.weakest.filter((d) => d.masteryPct < 75).forEach((d) =>
@@ -599,8 +607,14 @@
         '</div>';
     }).join('');
 
-    render('<div class="page-head"><div class="spread"><div><h1>Study plan</h1><p>Tailored for a beginner with limited weekly time. ' + plan.daysLeft + ' days to exam.</p></div>' +
+    const ap = plan.approach;
+    render('<div class="page-head"><div class="spread"><div><h1>Study plan</h1><p>' + plan.daysLeft + ' days until the Oct 1 deadline.</p></div>' +
       '<span class="pill accent">' + plan.doneTasks + ' / ' + plan.totalTasks + ' tasks</span></div></div>' +
+      '<div class="card approach-card" style="margin-bottom:18px"><div class="spread wrap"><div>' +
+        '<div class="eyebrow">Tailored for · ' + esc(ap.label) + '</div>' +
+        '<p class="muted" style="margin:2px 0 0;max-width:62ch">' + esc(ap.blurb) + '</p></div>' +
+        '<div class="approach-meta"><span class="pill accent">' + plan.weeks.length + '-week plan</span><span class="pill">' + esc(ap.hours) + '</span></div>' +
+      '</div><div class="btn-row mt"><a class="btn sm ghost" href="#/settings">Change level ›</a></div></div>' +
       '<div class="card" style="margin-bottom:18px"><div class="spread"><strong>Overall progress</strong><span>' + pct + '%</span></div><div class="mt">' + bar(pct) + '</div>' +
       '<p class="muted mt" style="font-size:13px;margin-bottom:0">Check tasks off as you go — progress is saved on this device and feeds your dashboard.</p></div>' +
       weeks);
@@ -717,6 +731,12 @@
           seg('reducedMotion', s.reducedMotion, [['auto', 'Auto'], ['on', 'Reduced'], ['off', 'Full']]) + '</div>' +
       '</div>' +
 
+      '<div class="card mt-lg"><h2>Kubernetes experience</h2>' +
+        '<p class="muted" style="margin-top:0">Tailors your study plan, flashcard default, and practice question difficulty.</p>' +
+        '<div class="setting"><strong>Experience level</strong>' +
+          seg('level', Settings.level(), [['none', 'New'], ['light', 'Some'], ['heavy', 'Experienced']]) + '</div>' +
+        '<p class="faint" style="margin:10px 0 0">' + esc(StudyPlan.approach().blurb) + '</p></div>' +
+
       '<div class="card mt-lg"><h2>Deadline &amp; plan</h2>' +
         '<p class="muted" style="margin-top:0">Changing these updates your countdown, study plan, and readiness.</p>' +
         '<div class="setting"><div><strong>Deadline (pass by)</strong><div class="faint">Company deadline to pass the KCNA.</div></div>' +
@@ -747,6 +767,7 @@
     on('[data-seg="theme"] button', 'click', function () { Settings.set({ theme: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="reducedMotion"] button', 'click', function () { Settings.set({ reducedMotion: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="deadlineWarn"] button', 'click', function () { Settings.set({ deadlineDismissed: this.getAttribute('data-val') === 'off' }); viewSettings(); });
+    on('[data-seg="level"] button', 'click', function () { Settings.set({ level: this.getAttribute('data-val') }); updateChrome(); viewSettings(); });
 
     // dates
     $('#save-dates').addEventListener('click', function () {
@@ -884,6 +905,33 @@
     });
   }
 
+  /* ================= ONBOARDING (experience level) ================= */
+  function showOnboarding() {
+    if (document.getElementById('onboarding-overlay')) return;
+    const ov = document.createElement('div');
+    ov.className = 'search-overlay'; ov.id = 'onboarding-overlay';
+    const opt = (val, title, sub) =>
+      '<button class="level-choice" data-level="' + val + '"><strong>' + title + '</strong><span>' + sub + '</span></button>';
+    ov.innerHTML = '<div class="search-box onboard-box" role="dialog" aria-label="Choose your experience level">' +
+      '<h2 style="margin:2px 4px 6px">Welcome to KCNA Prep 👋</h2>' +
+      '<p class="muted" style="margin:0 4px 14px">How familiar are you with Kubernetes? We\'ll tailor your study plan, flashcards, and question difficulty. You can change this anytime in Settings.</p>' +
+      '<div class="level-choices">' +
+        opt('none', 'New to Kubernetes', 'Start from the basics · gentle ~12-week plan') +
+        opt('light', 'Some experience', 'Reinforce the fundamentals · ~11-week plan') +
+        opt('heavy', 'Experienced', 'Diagnose-first · accelerated ~7-week plan') +
+      '</div></div>';
+    document.body.appendChild(ov);
+    on('#onboarding-overlay [data-level]', 'click', function () {
+      Settings.set({ level: this.getAttribute('data-level') });
+      ov.remove(); updateChrome(); route();
+    });
+    ov.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { Settings.set({ level: 'light' }); ov.remove(); updateChrome(); route(); }
+    });
+    ov.tabIndex = -1;
+    const first = ov.querySelector('.level-choice'); if (first) first.focus(); else ov.focus();
+  }
+
   /* ================= KEYBOARD SHORTCUTS ================= */
   function showShortcutsHelp() {
     const ov = document.createElement('div');
@@ -1003,4 +1051,6 @@
   if (window.Settings) Settings.apply();
   updateChrome();
   route();
+  // First run for this person: ask their Kubernetes experience to tailor everything.
+  if (window.Settings && Settings.get().level == null) showOnboarding();
 })();

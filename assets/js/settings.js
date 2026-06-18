@@ -2,7 +2,8 @@
    export/import/reset. Source of truth for preferences across the app. */
 window.Settings = (function () {
   const KEY = 'settings';
-  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false };
+  // level: null until the user chooses (triggers onboarding); else none|light|heavy.
+  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false, level: null };
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   const listeners = [];
 
@@ -45,6 +46,9 @@ window.Settings = (function () {
 
   function examDate() { return (window.KCNA && KCNA.meta && KCNA.meta.examDate) || load().examDate; }
   function planStart() { return (window.KCNA && KCNA.meta && KCNA.meta.planStart) || load().planStart; }
+
+  // Effective experience level (defaults to 'light' until the user chooses).
+  function level() { const l = load().level; return (l === 'none' || l === 'heavy') ? l : 'light'; }
 
   function apply() { applyTheme(); applyMeta(); }
 
@@ -181,7 +185,7 @@ window.Settings = (function () {
 
   return {
     get, set, onChange, apply, applyTheme, applyMeta, effectiveTheme,
-    examDate, planStart, importFromText, resetProgress, resetAll,
+    examDate, planStart, level, importFromText, resetProgress, resetAll,
     saveSession, loadSession, sessionFilename,
   };
 })();

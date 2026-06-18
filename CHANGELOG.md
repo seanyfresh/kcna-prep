@@ -9,7 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
-## [1.3.1] - 2026-06-17
+## [1.4.0] - 2026-06-17
+
+### Added
+- **Experience-level personalization** — a first-run prompt (and a Settings
+  control) asks how familiar you are with Kubernetes, then tailors the app to
+  **New / Some / Experienced**. Because sessions are per-person, each user gets
+  their own fit. It drives:
+  - **Study plan** — three distinct plans: a gentle ~12-week foundational plan
+    (New), the ~11-week balanced plan (Some), and an accelerated diagnose-first
+    ~7-week plan (Experienced). Each shows a "tailored for…" strategy card.
+  - **Practice difficulty** — free practice quizzes lean easier for New and
+    harder for Experienced (the diagnostic and mock stay representative so
+    readiness and scores remain honest).
+  - **Flashcard default** — Experienced starts in type-the-answer mode; others
+    in multiple-choice (your explicit choice always wins).
+  - **Guidance & tone** — the Plan and Readiness pages show level-specific advice.
 
 ### Changed
 - Deadline warning is now simply dismissible: removed the "Book exam" and
@@ -107,7 +122,8 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...v1.2.0

@@ -28,16 +28,19 @@ Study notes · spaced-repetition flashcards · weighted mock exams · honest rea
   diagnostic, or sit a full **60-question / 90-minute mock** weighted exactly like the real exam.
 - **🎯 Readiness** — an honest readiness score, predicted exam score, pass likelihood,
   per-domain mastery, and recommended next actions. Updates as you practice.
-- **🗓️ Plan** — an 11-week study plan with a live countdown and check-off tasks.
+- **🗓️ Plan** — a study plan **tailored to your Kubernetes experience**, with a live
+  countdown to the deadline and check-off tasks.
 - **📖 Reference** — a searchable **glossary** (58 terms), **official documentation**
   links per domain, and verified **exam facts**.
+- **🎚️ Tailored to you** — on first run, pick your experience (**New / Some /
+  Experienced**); the study plan, flashcard default, and practice difficulty all adapt.
 
-### New in 1.0
+### Also included
 
-🔎 Global search (`⌘/Ctrl + K`) · ⚙️ Settings (configurable exam date, **light/dark theme**) ·
-💾 Progress **export/import** to move between devices · 🔥 study **streak** ·
-⌨️ keyboard shortcuts · 📲 **installable PWA that works offline** · ♿ accessibility
-(skip link, ARIA live regions, focus management, reduced-motion).
+🔎 Global search (`⌘/Ctrl + K`) · ⚙️ Settings (configurable deadline, **light/dark theme**) ·
+💾 **Save / Load session files** (`.seanyprep`) to share a device or move between machines ·
+🔥 study **streak** · ⌨️ keyboard shortcuts · 📲 **installable PWA that works offline** ·
+♿ accessibility (skip link, ARIA live regions, focus management, reduced-motion).
 
 ## Exam blueprint (current, 2026)
 

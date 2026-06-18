@@ -479,6 +479,19 @@ a:focus-visible, button:focus-visible, .btn:focus-visible, .option:focus-visible
 }
 .pwa-toast-x { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 13px; }
 
+/* ---------- Onboarding (experience level) ---------- */
+.onboard-box { width: min(560px, 96vw); }
+.level-choices { display: grid; gap: 10px; }
+.level-choice {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 11px; padding: 14px 16px; cursor: pointer; font-family: inherit;
+}
+.level-choice strong { font-size: 15px; }
+.level-choice span { font-size: 12.5px; color: var(--text-dim); }
+.level-choice:hover, .level-choice:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+.approach-card .approach-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
 /* ---------- Keyboard shortcuts list ---------- */
 .kbd-list { display: grid; gap: 9px; }
 .kbd-row { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
