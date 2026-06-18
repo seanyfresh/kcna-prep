@@ -89,21 +89,17 @@
   }
 
   /* ================= DASHBOARD ================= */
-  const EXAM_URL = 'https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate-kcna/';
-
-  // Persistent reminder to BOOK the exam — the app can't schedule it for you.
+  // Deadline reminder — dismissible with the ✕ (persists; re-show in Settings).
   function schedulingBanner() {
-    if (Settings.get().scheduled) return '';
+    if (Settings.get().deadlineDismissed) return '';
     const cd = StudyPlan.countdown();
     const short = cd.exam.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
     const urgent = cd.days <= 30;
     return '<div class="banner schedule-banner' + (urgent ? ' banner-bad' : '') + '" role="alert">' +
       '<div><strong>' + (urgent ? '🚨' : '⚠️') + ' Company deadline — pass the KCNA by ' + esc(short) + ' (' + cd.days + ' days left).</strong> ' +
-      'The app can\'t book your exam; you must schedule it yourself' + (urgent ? ' <strong>now</strong>' : '') + '.</div>' +
-      '<div class="btn-row">' +
-        '<a class="btn sm primary" href="' + EXAM_URL + '" target="_blank" rel="noopener noreferrer">Book exam ↗</a>' +
-        '<button class="btn sm ghost" id="mark-scheduled">I\'ve scheduled it</button>' +
-      '</div></div>';
+      'Remember to schedule your exam in time' + (urgent ? ' — book it now' : '') + '.</div>' +
+      '<button class="banner-x" id="dismiss-deadline" aria-label="Close deadline warning" title="Close">✕</button>' +
+      '</div>';
   }
 
   function viewDashboard() {
@@ -177,8 +173,8 @@
         '</div></div>'
     );
     bindPlanChecks();
-    const ms = $('#mark-scheduled');
-    if (ms) ms.addEventListener('click', function () { Settings.set({ scheduled: true }); viewDashboard(); });
+    const dx = $('#dismiss-deadline');
+    if (dx) dx.addEventListener('click', function () { Settings.set({ deadlineDismissed: true }); viewDashboard(); });
   }
   function stat(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
 
@@ -727,8 +723,8 @@
           '<input type="date" id="exam-date" aria-label="Deadline date" class="fc-input" style="max-width:200px" value="' + esc(m.examDate) + '"></div>' +
         '<div class="setting"><label for="plan-start"><strong>Plan start</strong></label>' +
           '<input type="date" id="plan-start" class="fc-input" style="max-width:200px" value="' + esc(m.planStart) + '"></div>' +
-        '<div class="setting"><div><strong>Exam scheduled?</strong><div class="faint">Hides the "book your exam" reminder once booked.</div></div>' +
-          seg('scheduled', s.scheduled ? 'yes' : 'no', [['no', 'Not yet'], ['yes', 'Booked ✓']]) + '</div>' +
+        '<div class="setting"><div><strong>Deadline warning</strong><div class="faint">Show or hide the dashboard deadline reminder.</div></div>' +
+          seg('deadlineWarn', s.deadlineDismissed ? 'off' : 'on', [['on', 'Show'], ['off', 'Hidden']]) + '</div>' +
         '<div class="btn-row mt"><button class="btn primary" id="save-dates">Save dates</button>' +
           '<button class="btn ghost" id="reset-dates">Reset to defaults</button></div></div>' +
 
@@ -750,7 +746,7 @@
     // appearance
     on('[data-seg="theme"] button', 'click', function () { Settings.set({ theme: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="reducedMotion"] button', 'click', function () { Settings.set({ reducedMotion: this.getAttribute('data-val') }); viewSettings(); });
-    on('[data-seg="scheduled"] button', 'click', function () { Settings.set({ scheduled: this.getAttribute('data-val') === 'yes' }); viewSettings(); });
+    on('[data-seg="deadlineWarn"] button', 'click', function () { Settings.set({ deadlineDismissed: this.getAttribute('data-val') === 'off' }); viewSettings(); });
 
     // dates
     $('#save-dates').addEventListener('click', function () {

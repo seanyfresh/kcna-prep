@@ -78,7 +78,7 @@ window.StudyPlan = (function () {
         ['w8t1', 'Take a full timed Mock Exam (60 Q / 90 min)', '#/practice?mock=1'],
         ['w8t2', 'Review all incorrect answers and read the explanations', '#/readiness'],
         ['w8t3', 'Re-quiz your two weakest domains (see Readiness)', '#/readiness'],
-        ['w8t4', '📅 Book your KCNA exam slot now — you must pass by Oct 1 (Dashboard → Book exam)', '#/dashboard'],
+        ['w8t4', '📅 Book your KCNA exam slot now — you must pass by Oct 1', '#/readiness'],
       ],
     },
     {

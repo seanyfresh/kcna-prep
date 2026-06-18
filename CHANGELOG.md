@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing yet._
 
+## [1.3.1] - 2026-06-17
+
+### Changed
+- Deadline warning is now simply dismissible: removed the "Book exam" and
+  "I've scheduled it" buttons in favor of a **✕ close** control in the top-right.
+  Dismissal persists; re-show it via **Settings → Deadline & plan → Deadline warning**.
+
 ## [1.3.0] - 2026-06-17
 
 ### Changed
@@ -100,7 +107,8 @@ make it production-ready and easy for anyone to run.
 - Issue/PR templates, `CODEOWNERS`, `Makefile`, and `docs/` (deployment, content
   authoring, architecture, and security).
 
-[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/seanyfresh/kcna-prep/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/seanyfresh/kcna-prep/compare/v1.0.0...v1.1.0

@@ -2,7 +2,7 @@
    export/import/reset. Source of truth for preferences across the app. */
 window.Settings = (function () {
   const KEY = 'settings';
-  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, scheduled: false };
+  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false };
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   const listeners = [];
 
