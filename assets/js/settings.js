@@ -3,8 +3,9 @@
 window.Settings = (function () {
   const KEY = 'settings';
   // level: null until the user chooses; else none|light|heavy.
+  // lang: null until the user chooses; else a code from I18n.LANGS (auto-detected).
   // reportName / examBookedDate feed the manager progress report.
-  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false, level: null, reportName: '', examBookedDate: null };
+  const DEFAULTS = { theme: 'auto', reducedMotion: 'auto', examDate: null, planStart: null, deadlineDismissed: false, level: null, lang: null, reportName: '', examBookedDate: null };
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   const listeners = [];
 
@@ -51,7 +52,23 @@ window.Settings = (function () {
   // Effective experience level (defaults to 'light' until the user chooses).
   function level() { const l = load().level; return (l === 'none' || l === 'heavy') ? l : 'light'; }
 
-  function apply() { applyTheme(); applyMeta(); }
+  // Effective UI language: the saved choice if supported, else auto-detected
+  // from the browser, else English.
+  function lang() {
+    const l = load().lang;
+    if (l && window.I18n && I18n.has(l)) return l;
+    return window.I18n ? I18n.detect() : 'en';
+  }
+
+  // Sync the active language + <html lang>/<dir> with the current setting.
+  function applyLang() {
+    if (!window.I18n) return;
+    const l = lang();
+    I18n.setActive(l);
+    I18n.applyDocument(l);
+  }
+
+  function apply() { applyTheme(); applyMeta(); applyLang(); }
 
   mq.addEventListener && mq.addEventListener('change', () => {
     if (load().theme === 'auto') { applyTheme(); emit(); }
@@ -185,8 +202,8 @@ window.Settings = (function () {
   function resetAll() { Store.reset(); apply(); emit(); }
 
   return {
-    get, set, onChange, apply, applyTheme, applyMeta, effectiveTheme,
-    examDate, planStart, level, importFromText, resetProgress, resetAll,
+    get, set, onChange, apply, applyTheme, applyMeta, applyLang, effectiveTheme,
+    examDate, planStart, level, lang, importFromText, resetProgress, resetAll,
     saveSession, loadSession, sessionFilename,
   };
 })();

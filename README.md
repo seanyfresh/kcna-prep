@@ -34,12 +34,18 @@ Study notes · spaced-repetition flashcards · weighted mock exams · honest rea
   links per domain, and verified **exam facts**.
 - **🎚️ Tailored to you** — on first run, pick your experience (**New / Some /
   Experienced**); the study plan, flashcard default, and practice difficulty all adapt.
+- **🌐 Multi-language interface** — the whole UI is available in **10 languages**
+  (English, Español, Português, Français, Deutsch, Italiano, 简体中文, 日本語,
+  हिन्दी, العربية, with right-to-left support for Arabic) via the 🌐 menu in the
+  top bar. Study **content stays in English** to match the English-only exam, so
+  you still practice the real terminology (Pod, Deployment, Ingress…).
 
 ### Also included
 
-🔎 Global search (`⌘/Ctrl + K`) · ⚙️ Settings (configurable deadline, **light/dark theme**) ·
-💾 **Save / Load session files** (`.seanyprep`) to share a device or move between machines ·
-🔥 study **streak** · ⌨️ keyboard shortcuts · 📲 **installable PWA that works offline** ·
+🔎 Global search (`⌘/Ctrl + K`) · ⚙️ Settings (configurable deadline, **light/dark theme**,
+**UI language**) · 💾 **Save / Load session files** (`.seanyprep`) to share a device or move
+between machines · 🔥 study **streak** · ⌨️ keyboard shortcuts ·
+📲 **installable PWA that works offline** ·
 ♿ accessibility (skip link, ARIA live regions, focus management, reduced-motion).
 
 ## Exam blueprint (current, 2026)

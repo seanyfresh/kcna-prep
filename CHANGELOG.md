@@ -2,15 +2,25 @@
 
 All notable changes to **KCNA Prep** are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Each release lists what changed (seriously), then *why* (less seriously).
+## [1.7.0] - 2026-06-18
 
-## [Unreleased]
+### Added
+- **Multi-language interface** — a new 🌐 language menu in the top bar (and a
+  matching picker in **Settings**) translates the whole app UI into **10
+  languages**: English, Español, Português, Français, Deutsch, Italiano,
+  简体中文, 日本語, हिन्दी, and العربية. Your choice is saved per device, and the
+  app auto-detects your browser's language on first visit.
+- **Right-to-left layout** for Arabic — the interface mirrors correctly (menus,
+  nav, lists, and panels).
 
-_Nothing yet._
+### Notes
+- Study **content stays in English** — notes, flashcards, and exam questions —
+  because the KCNA exam is administered in English. Localizing the interface
+  keeps the app approachable while you still practice the real exam terminology
+  (Pod, Deployment, Ingress…), which is intentionally kept in English everywhere.
 
-> 😴 *The changelog naps. It has earned it.*
+> 🌍 *Why: a study tool shouldn't gatekeep on language. Now teammates across the
+> Americas can navigate in their own — and still meet the exam on its terms.*
 
 ## [1.6.1] - 2026-06-17
 

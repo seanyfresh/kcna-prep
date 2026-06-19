@@ -517,3 +517,28 @@ kbd { font-family: var(--mono); background: var(--panel-2); border: 1px solid va
   .flashcard { height: auto; min-height: 300px; }
   .note-body { overflow-x: auto; }
 }
+
+/* ================= i18n: language menu + RTL ================= */
+/* The language menu lists 10 languages — let it scroll if it runs tall. */
+.menu.menu-scroll { max-height: min(70vh, 460px); overflow-y: auto; overscroll-behavior: contain; }
+/* The language picker in Settings has many native-name buttons — let it wrap. */
+.seg[data-seg="lang"] { display: flex; flex-wrap: wrap; }
+
+/* Right-to-left (Arabic). Flexbox/grid reflow automatically with dir=rtl;
+   these fix the few rules that hard-code a physical side. */
+[dir="rtl"] .menu { right: auto; left: 0; }
+[dir="rtl"] .menu button { text-align: right; }
+[dir="rtl"] .mainnav { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .domain-score { text-align: left; }
+[dir="rtl"] .fact .fv { text-align: left; }
+[dir="rtl"] .note-body th, [dir="rtl"] .note-body td { text-align: right; }
+[dir="rtl"] .note-body ul, [dir="rtl"] .note-body ol { padding-left: 0; padding-right: 22px; }
+[dir="rtl"] .explain { border-left: none; border-right: 3px solid var(--accent); }
+[dir="rtl"] .ans-reveal .val.correct-ans { border-left: none; border-right: 3px solid var(--good); }
+[dir="rtl"] .flash-face .label { left: auto; right: 18px; }
+[dir="rtl"] .fc-q .label { left: auto; right: 16px; }
+[dir="rtl"] .skip-link { left: auto; right: 12px; }
+@media (max-width: 860px) {
+  [dir="rtl"] .mainnav { left: 14px; right: auto; }
+  [dir="rtl"] .nav-toggle { margin-left: 0; margin-right: auto; }
+}

@@ -2,6 +2,7 @@
 window.PWA = (function () {
   let deferredPrompt = null;
   const listeners = [];
+  function tr(s) { return window.I18n ? I18n.t(s) : s; }
 
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches ||
@@ -37,7 +38,7 @@ window.PWA = (function () {
     }
     const close = document.createElement('button');
     close.className = 'pwa-toast-x';
-    close.setAttribute('aria-label', 'Dismiss');
+    close.setAttribute('aria-label', tr('Dismiss'));
     close.textContent = '✕';
     close.addEventListener('click', () => bar.remove());
     bar.appendChild(close);
@@ -75,7 +76,7 @@ window.PWA = (function () {
           if (!sw) return;
           sw.addEventListener('statechange', () => {
             if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-              toast('A new version of KCNA Prep is ready.', 'Reload', () => {
+              toast(tr('A new version of KCNA Prep is ready.'), tr('Reload'), () => {
                 sw.postMessage('skipWaiting');
               });
             }

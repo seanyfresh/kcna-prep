@@ -25,6 +25,18 @@
   function on(sel, ev, fn) { $all(sel).forEach((e) => e.addEventListener(ev, fn)); }
   function go(hash) { window.location.hash = hash; }
 
+  // Translate an English UI string into the active language (English fallback).
+  // Kept short because it wraps nearly every user-visible string below.
+  function tr(s, vars) { return window.I18n ? I18n.t(s, vars) : s; }
+  // Session/quiz titles are stored in English (stable across languages); this
+  // translates them for display, including the "<Domain> — Practice" pattern.
+  function trTitle(s) {
+    if (!s) return '';
+    const m = /^(.*) — Practice$/.exec(s);
+    if (m) return esc(m[1]) + ' — ' + tr('Practice');
+    return esc(tr(s));
+  }
+
   function parseRoute() {
     let h = window.location.hash.replace(/^#/, '') || '/dashboard';
     const qi = h.indexOf('?');
@@ -46,12 +58,12 @@
     const off = c * (1 - pct / 100);
     const col = pct >= 75 ? '#92dd23' : pct >= 55 ? '#ff9178' : pct >= 1 ? '#e14e35' : '#3a3a40';
     const size = big ? 150 : 110;
-    return '<div class="gauge" role="img" aria-label="Readiness ' + pct + ' percent" style="width:' + size + 'px;height:' + size + 'px">' +
+    return '<div class="gauge" role="img" aria-label="' + esc(tr('Readiness {pct} percent', { pct: pct })) + '" style="width:' + size + 'px;height:' + size + 'px">' +
       '<svg viewBox="0 0 150 150" width="' + size + '" height="' + size + '" aria-hidden="true" focusable="false">' +
       '<circle class="gauge-track" cx="75" cy="75" r="' + r + '" fill="none" stroke-width="13"/>' +
       '<circle cx="75" cy="75" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="13" stroke-linecap="round" ' +
       'stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 75 75)"/></svg>' +
-      '<div class="val"><div><span class="num">' + pct + '</span><div class="lbl">readiness</div></div></div></div>';
+      '<div class="val"><div><span class="num">' + pct + '</span><div class="lbl">' + tr('readiness') + '</div></div></div></div>';
   }
 
   function bar(pct, cls) {
@@ -61,10 +73,10 @@
 
   function notReady() {
     return '<div class="empty-state"><div class="big">⏳</div>' +
-      '<h2>Study content is being generated</h2>' +
-      '<p class="muted">The notes, flashcards and question bank are still being written.<br>' +
-      'Reload this page once generation finishes.</p>' +
-      '<button class="btn primary mt" data-act="reload">Reload</button></div>';
+      '<h2>' + tr('Study content is being generated') + '</h2>' +
+      '<p class="muted">' + tr('The notes, flashcards and question bank are still being written.') + '<br>' +
+      tr('Reload this page once generation finishes.') + '</p>' +
+      '<button class="btn primary mt" data-act="reload">' + tr('Reload') + '</button></div>';
   }
 
   function render(html) { appEl.innerHTML = html; window.scrollTo(0, 0); }
@@ -81,10 +93,10 @@
   function updateChrome() {
     const cd = StudyPlan.countdown();
     const short = cd.exam.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    $('#brand-countdown').textContent = cd.days + ' days · pass by ' + short;
+    $('#brand-countdown').textContent = tr('{days} days · pass by {date}', { days: cd.days, date: short });
     if (KCNA.ready()) {
       const c = KCNA.counts();
-      $('#foot-stats').textContent = c.questions + ' questions · ' + c.flashcards + ' flashcards · ' + c.notes + ' notes';
+      $('#foot-stats').textContent = tr('{questions} questions · {flashcards} flashcards · {notes} notes', { questions: c.questions, flashcards: c.flashcards, notes: c.notes });
     }
   }
 
@@ -96,9 +108,10 @@
     const short = cd.exam.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
     const urgent = cd.days <= 30;
     return '<div class="banner schedule-banner' + (urgent ? ' banner-bad' : '') + '" role="alert">' +
-      '<div><strong>' + (urgent ? '🚨' : '⚠️') + ' Company deadline — pass the KCNA by ' + esc(short) + ' (' + cd.days + ' days left).</strong> ' +
-      'Remember to schedule your exam in time' + (urgent ? ' — book it now' : '') + '.</div>' +
-      '<button class="banner-x" id="dismiss-deadline" aria-label="Close deadline warning" title="Close">✕</button>' +
+      '<div><strong>' + (urgent ? '🚨' : '⚠️') + ' ' +
+        tr('Company deadline — pass the KCNA by {date} ({days} days left).', { date: esc(short), days: cd.days }) + '</strong> ' +
+      (urgent ? tr('Remember to schedule your exam in time — book it now.') : tr('Remember to schedule your exam in time.')) + '</div>' +
+      '<button class="banner-x" id="dismiss-deadline" aria-label="' + esc(tr('Close deadline warning')) + '" title="' + esc(tr('Close')) + '">✕</button>' +
       '</div>';
   }
 
@@ -124,22 +137,22 @@
       schedulingBanner() +
       '<div class="hero">' +
         '<div class="card pad-lg readiness-card">' +
-          '<div class="eyebrow">Your readiness</div>' +
+          '<div class="eyebrow">' + tr('Your readiness') + '</div>' +
           '<div class="gauge-wrap">' + gauge(r.readiness, true) +
-            '<div><div class="row"><span class="pill ' + r.levelClass + '">' + r.level + '</span></div>' +
+            '<div><div class="row"><span class="pill ' + r.levelClass + '">' + tr(r.level) + '</span></div>' +
             '<p class="muted mt" style="margin:8px 0 0">' +
               (r.totalAnswered < 20
-                ? 'Take the <strong>Diagnostic</strong> to assess where you stand. You have answered ' + r.totalAnswered + ' questions so far.'
-                : 'Predicted exam score <strong>~' + r.predictedScore + '%</strong> · pass mark ' + r.passPct + '%. Pass likelihood: <span class="' + r.likelihoodClass + '">' + r.likelihood + '</span>.') +
+                ? tr('Take the <strong>Diagnostic</strong> to assess where you stand. You have answered {n} questions so far.', { n: r.totalAnswered })
+                : tr('Predicted exam score <strong>~{score}%</strong> · pass mark {pass}%. Pass likelihood: <span class="{cls}">{likelihood}</span>.', { score: r.predictedScore, pass: r.passPct, cls: r.likelihoodClass, likelihood: tr(r.likelihood) })) +
             '</p>' +
-            '<div class="btn-row mt"><a class="btn primary sm" href="#/readiness">Full analysis</a>' +
-            '<a class="btn sm" href="#/practice?diagnostic=1">Run diagnostic</a></div></div>' +
+            '<div class="btn-row mt"><a class="btn primary sm" href="#/readiness">' + tr('Full analysis') + '</a>' +
+            '<a class="btn sm" href="#/practice?diagnostic=1">' + tr('Run diagnostic') + '</a></div></div>' +
           '</div>' +
         '</div>' +
         '<div class="card countdown-card">' +
-          '<div class="eyebrow">Company deadline</div>' +
+          '<div class="eyebrow">' + tr('Company deadline') + '</div>' +
           '<div class="countdown-num">' + cd.days + '</div>' +
-          '<div class="sub">days to pass by</div>' +
+          '<div class="sub">' + tr('days to pass by') + '</div>' +
           '<div class="countdown-date">' + cd.examLabel + '</div>' +
         '</div>' +
       '</div>' +
@@ -153,31 +166,31 @@
       '</div>' +
 
       '<div class="grid cols-2">' +
-        '<div class="card"><h2>Domain mastery</h2>' + (KCNA.ready() ? domainRows : '<p class="muted">Content loading…</p>') + '</div>' +
-        '<div class="card"><div class="spread"><h2 style="margin:0">This week — Week ' + cur.num + '</h2><span class="pill accent">' + cur.range + '</span></div>' +
-          '<p class="muted" style="margin:8px 0 12px">' + esc(cur.focus) + '</p>' +
+        '<div class="card"><h2>' + tr('Domain mastery') + '</h2>' + (KCNA.ready() ? domainRows : '<p class="muted">' + tr('Content loading…') + '</p>') + '</div>' +
+        '<div class="card"><div class="spread"><h2 style="margin:0">' + tr('This week — Week {n}', { n: cur.num }) + '</h2><span class="pill accent">' + cur.range + '</span></div>' +
+          '<p class="muted" style="margin:8px 0 12px">' + esc(tr(cur.focus)) + '</p>' +
           '<div>' + cur.tasks.map((t) =>
             '<div class="task ' + (t.done ? 'done' : '') + '"><input type="checkbox" data-task="' + t.id + '" ' + (t.done ? 'checked' : '') + '>' +
-            '<label>' + esc(t.text) + ' <a href="' + t.link + '">open ›</a></label></div>').join('') +
+            '<label>' + esc(tr(t.text)) + ' <a href="' + t.link + '">' + tr('open ›') + '</a></label></div>').join('') +
           '</div>' +
-          '<a class="btn sm mt" href="#/plan">Full study plan ›</a>' +
+          '<a class="btn sm mt" href="#/plan">' + tr('Full study plan ›') + '</a>' +
         '</div>' +
       '</div>' +
 
-      '<div class="card mt-lg"><div class="spread"><h2 style="margin:0">Jump in</h2></div>' +
+      '<div class="card mt-lg"><div class="spread"><h2 style="margin:0">' + tr('Jump in') + '</h2></div>' +
         '<div class="btn-row mt">' +
-          '<a class="btn primary" href="#/learn">📚 Study notes</a>' +
-          '<a class="btn" href="#/cards">🃏 Flashcards' + (fc.due ? ' (' + fc.due + ' due)' : '') + '</a>' +
-          '<a class="btn" href="#/practice?mock=1">📝 Full mock exam</a>' +
-          '<a class="btn" href="#/practice">⚡ Quick practice</a>' +
-          '<a class="btn" href="#/report">📄 Progress report</a>' +
+          '<a class="btn primary" href="#/learn">📚 ' + tr('Study notes') + '</a>' +
+          '<a class="btn" href="#/cards">🃏 ' + tr('Flashcards') + (fc.due ? ' (' + tr('{n} due', { n: fc.due }) + ')' : '') + '</a>' +
+          '<a class="btn" href="#/practice?mock=1">📝 ' + tr('Full mock exam') + '</a>' +
+          '<a class="btn" href="#/practice">⚡ ' + tr('Quick practice') + '</a>' +
+          '<a class="btn" href="#/report">📄 ' + tr('Progress report') + '</a>' +
         '</div></div>'
     );
     bindPlanChecks();
     const dx = $('#dismiss-deadline');
     if (dx) dx.addEventListener('click', function () { Settings.set({ deadlineDismissed: true }); viewDashboard(); });
   }
-  function stat(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
+  function stat(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + tr(l) + '</div></div>'; }
 
   /* ================= LEARN ================= */
   function viewLearn() {
@@ -187,45 +200,45 @@
       const st = stats[d.id] || { answered: 0, correct: 0 };
       const acc = st.answered ? Math.round((st.correct / st.answered) * 100) : 0;
       return '<a class="card domain-card" href="#/learn/' + d.id + '">' +
-        '<div class="spread"><strong>' + esc(d.name) + '</strong><span class="pill accent">' + d.weight + '% of exam</span></div>' +
-        '<p class="muted" style="margin:8px 0 12px">' + (d.notes || []).length + ' notes · ' + (d.flashcards || []).length + ' cards · ' + (d.questions || []).length + ' questions</p>' +
-        (st.answered ? bar(acc, Readiness.colorClass(acc)) + '<div class="wt mt">Mastery ' + acc + '% · ' + st.answered + ' answered</div>' : '<div class="wt">Not started yet</div>') +
+        '<div class="spread"><strong>' + esc(d.name) + '</strong><span class="pill accent">' + tr('{weight}% of exam', { weight: d.weight }) + '</span></div>' +
+        '<p class="muted" style="margin:8px 0 12px">' + tr('{notes} notes · {cards} cards · {questions} questions', { notes: (d.notes || []).length, cards: (d.flashcards || []).length, questions: (d.questions || []).length }) + '</p>' +
+        (st.answered ? bar(acc, Readiness.colorClass(acc)) + '<div class="wt mt">' + tr('Mastery {pct}% · {answered} answered', { pct: acc, answered: st.answered }) + '</div>' : '<div class="wt">' + tr('Not started yet') + '</div>') +
         '</a>';
     }).join('');
-    render('<div class="page-head"><h1>Learn</h1><p>Concise, exam-focused notes across all five KCNA domains. Ordered by exam weight.</p></div>' +
+    render('<div class="page-head"><h1>' + tr('Learn') + '</h1><p>' + tr('Concise, exam-focused notes across all five KCNA domains. Ordered by exam weight.') + '</p></div>' +
       '<div class="grid cols-2">' + cards + '</div>');
   }
 
   function viewLearnDomain(id) {
     if (!KCNA.ready()) return render(notReady());
     const d = KCNA.domain(id);
-    if (!d) return render('<div class="empty-state">Domain not found. <a href="#/learn">Back to Learn</a></div>');
+    if (!d) return render('<div class="empty-state">' + tr('Domain not found.') + ' <a href="#/learn">' + tr('Back to Learn') + '</a></div>');
     const notes = (d.notes || []).map((n, i) =>
-      '<li><a href="#/note/' + d.id + '/' + i + '"><span><span class="note-num">' + (i + 1) + '</span>' + esc(n.title) + '</span><span class="faint">read ›</span></a></li>').join('');
+      '<li><a href="#/note/' + d.id + '/' + i + '"><span><span class="note-num">' + (i + 1) + '</span>' + esc(n.title) + '</span><span class="faint">' + tr('read ›') + '</span></a></li>').join('');
     const refs = KCNA.references ? KCNA.references(d.id) : [];
-    const refsHtml = refs.length ? '<div class="card mt-lg"><h2>📖 Further reading — official docs</h2>' +
+    const refsHtml = refs.length ? '<div class="card mt-lg"><h2>📖 ' + tr('Further reading — official docs') + '</h2>' +
       '<ul class="ref-list">' + refs.map((r) =>
         '<li><a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' + esc(r.title) +
         ' <span class="ext">↗</span></a><div class="faint">' + esc(r.note || '') + '</div></li>').join('') +
       '</ul></div>' : '';
-    render('<div class="crumbs"><a href="#/learn">Learn</a> › ' + esc(d.name) + '</div>' +
-      '<div class="page-head"><div class="spread"><div><h1>' + esc(d.name) + '</h1><p>' + d.weight + '% of the exam · ' + (d.notes || []).length + ' notes</p></div></div></div>' +
+    render('<div class="crumbs"><a href="#/learn">' + tr('Learn') + '</a> › ' + esc(d.name) + '</div>' +
+      '<div class="page-head"><div class="spread"><div><h1>' + esc(d.name) + '</h1><p>' + tr('{weight}% of the exam · {notes} notes', { weight: d.weight, notes: (d.notes || []).length }) + '</p></div></div></div>' +
       '<div class="btn-row" style="margin-bottom:18px">' +
-        '<a class="btn primary" href="#/practice?domain=' + d.id + '">📝 Quiz this domain</a>' +
-        '<a class="btn" href="#/cards?domain=' + d.id + '">🃏 Flashcards</a></div>' +
+        '<a class="btn primary" href="#/practice?domain=' + d.id + '">📝 ' + tr('Quiz this domain') + '</a>' +
+        '<a class="btn" href="#/cards?domain=' + d.id + '">🃏 ' + tr('Flashcards') + '</a></div>' +
       '<div class="card"><ul class="note-list">' + notes + '</ul></div>' + refsHtml);
   }
 
   function viewNote(id, idx) {
     if (!KCNA.ready()) return render(notReady());
     const d = KCNA.domain(id);
-    if (!d) return render('<div class="empty-state">Not found. <a href="#/learn">Back</a></div>');
+    if (!d) return render('<div class="empty-state">' + tr('Not found.') + ' <a href="#/learn">' + tr('Back') + '</a></div>');
     idx = parseInt(idx, 10) || 0;
     const n = (d.notes || [])[idx];
-    if (!n) return render('<div class="empty-state">Note not found. <a href="#/learn/' + id + '">Back</a></div>');
-    const prev = idx > 0 ? '<a class="btn sm" href="#/note/' + id + '/' + (idx - 1) + '">‹ Previous</a>' : '<span></span>';
-    const next = idx < d.notes.length - 1 ? '<a class="btn sm primary" href="#/note/' + id + '/' + (idx + 1) + '">Next ›</a>' : '<a class="btn sm primary" href="#/practice?domain=' + id + '">Quiz this domain ›</a>';
-    render('<div class="crumbs"><a href="#/learn">Learn</a> › <a href="#/learn/' + id + '">' + esc(d.name) + '</a> › ' + esc(n.title) + '</div>' +
+    if (!n) return render('<div class="empty-state">' + tr('Note not found.') + ' <a href="#/learn/' + id + '">' + tr('Back') + '</a></div>');
+    const prev = idx > 0 ? '<a class="btn sm" href="#/note/' + id + '/' + (idx - 1) + '">' + tr('‹ Previous') + '</a>' : '<span></span>';
+    const next = idx < d.notes.length - 1 ? '<a class="btn sm primary" href="#/note/' + id + '/' + (idx + 1) + '">' + tr('Next ›') + '</a>' : '<a class="btn sm primary" href="#/practice?domain=' + id + '">' + tr('Quiz this domain ›') + '</a>';
+    render('<div class="crumbs"><a href="#/learn">' + tr('Learn') + '</a> › <a href="#/learn/' + id + '">' + esc(d.name) + '</a> › ' + esc(n.title) + '</div>' +
       '<div class="card pad-lg"><div class="row" style="gap:8px;margin-bottom:6px"><span class="pill accent">' + esc(n.topic) + '</span></div>' +
       '<h1 style="margin:4px 0 16px;font-size:24px">' + esc(n.title) + '</h1>' +
       '<div class="note-body">' + n.html + '</div></div>' +
@@ -252,21 +265,21 @@
     const all = Flashcards.stats(null);
     const mode = fcMode();
     const modeBtns = Object.keys(MODES).map((k) =>
-      '<button data-fcmode="' + k + '" class="' + (k === mode ? 'active' : '') + '">' + MODES[k].label +
-      '<span style="display:block;font-weight:400;font-size:11px;color:var(--text-faint)">' + MODES[k].sub + '</span></button>').join('');
+      '<button data-fcmode="' + k + '" class="' + (k === mode ? 'active' : '') + '">' + tr(MODES[k].label) +
+      '<span style="display:block;font-weight:400;font-size:11px;color:var(--text-faint)">' + tr(MODES[k].sub) + '</span></button>').join('');
     const perDomain = KCNA.all().map((d) => {
       const s = Flashcards.stats(d.id);
       return '<div class="choice" data-deck="' + d.id + '"><div class="ct">' + esc(d.name) + '</div>' +
-        '<div class="cd">' + s.total + ' cards · <span class="' + (s.due ? 'tag-medium' : 'muted') + '">' + s.due + ' due</span> · ' + s.mastered + ' mastered</div></div>';
+        '<div class="cd">' + tr('{n} cards', { n: s.total }) + ' · <span class="' + (s.due ? 'tag-medium' : 'muted') + '">' + tr('{n} due', { n: s.due }) + '</span> · ' + tr('{n} mastered', { n: s.mastered }) + '</div></div>';
     }).join('');
-    render('<div class="page-head"><h1>Flashcards</h1><p>Spaced repetition — cards you find hard come back sooner. ' + all.due + ' due now of ' + all.total + ' total.</p></div>' +
-      '<div class="card" style="margin-bottom:18px"><div class="spread wrap"><div><h2 style="margin:0 0 4px">Answer mode</h2>' +
-        '<p class="muted" style="margin:0;font-size:13px">Choose how you want to be quizzed. Applies to every deck.</p></div>' +
+    render('<div class="page-head"><h1>' + tr('Flashcards') + '</h1><p>' + tr('Spaced repetition — cards you find hard come back sooner. {due} due now of {total} total.', { due: all.due, total: all.total }) + '</p></div>' +
+      '<div class="card" style="margin-bottom:18px"><div class="spread wrap"><div><h2 style="margin:0 0 4px">' + tr('Answer mode') + '</h2>' +
+        '<p class="muted" style="margin:0;font-size:13px">' + tr('Choose how you want to be quizzed. Applies to every deck.') + '</p></div>' +
         '<div class="fc-mode" id="fcmode">' + modeBtns + '</div></div></div>' +
-      '<div class="card"><div class="spread"><h2 style="margin:0">Study all due</h2><span class="pill ' + (all.due ? 'warn' : 'good') + '">' + all.due + ' due</span></div>' +
-        '<p class="muted" style="margin:8px 0 0">Mix of every domain. ' + all.mastered + ' mastered · ' + all.learning + ' learning · ' + all.fresh + ' new.</p>' +
-        '<button class="btn primary mt" data-deck="all">Start session ›</button></div>' +
-      '<h2 style="margin:24px 0 12px">By domain</h2><div class="choice-grid">' + perDomain + '</div>');
+      '<div class="card"><div class="spread"><h2 style="margin:0">' + tr('Study all due') + '</h2><span class="pill ' + (all.due ? 'warn' : 'good') + '">' + tr('{n} due', { n: all.due }) + '</span></div>' +
+        '<p class="muted" style="margin:8px 0 0">' + tr('Mix of every domain. {mastered} mastered · {learning} learning · {fresh} new.', { mastered: all.mastered, learning: all.learning, fresh: all.fresh }) + '</p>' +
+        '<button class="btn primary mt" data-deck="all">' + tr('Start session ›') + '</button></div>' +
+      '<h2 style="margin:24px 0 12px">' + tr('By domain') + '</h2><div class="choice-grid">' + perDomain + '</div>');
     on('[data-fcmode]', 'click', function () { Store.set('fcMode', this.getAttribute('data-fcmode')); viewCards({}); });
     on('[data-deck]', 'click', function () { const dk = this.getAttribute('data-deck'); startDeck(dk === 'all' ? null : dk); });
   }
@@ -275,9 +288,11 @@
     deck = { domainId, mode: fcMode(), cards: Flashcards.queue(domainId, 25) };
     dIdx = 0; resetCardState();
     if (!deck.cards.length) {
-      render('<div class="empty-state"><div class="big">✅</div><h2>No cards due right now</h2>' +
-        '<p class="muted">Great — you are caught up' + (domainId ? ' for this domain' : '') + '. Come back later or pick another deck.</p>' +
-        '<a class="btn primary mt" href="#/cards">Back to decks</a></div>');
+      render('<div class="empty-state"><div class="big">✅</div><h2>' + tr('No cards due right now') + '</h2>' +
+        '<p class="muted">' + (domainId
+          ? tr('Great — you are caught up for this domain. Come back later or pick another deck.')
+          : tr('Great — you are caught up. Come back later or pick another deck.')) + '</p>' +
+        '<a class="btn primary mt" href="#/cards">' + tr('Back to decks') + '</a></div>');
       return;
     }
     renderCard();
@@ -286,19 +301,19 @@
   function deckHeader() {
     const total = deck.cards.length;
     const m = MODES[deck.mode] || MODES.flip;
-    return '<div class="quiz-top"><div class="row" style="gap:8px"><a class="btn sm ghost" href="#/cards">‹ Decks</a>' +
-      '<span class="pill ' + m.pill + '">' + m.label + ' · ' + m.sub + '</span></div>' +
+    return '<div class="quiz-top"><div class="row" style="gap:8px"><a class="btn sm ghost" href="#/cards">' + tr('‹ Decks') + '</a>' +
+      '<span class="pill ' + m.pill + '">' + tr(m.label) + ' · ' + tr(m.sub) + '</span></div>' +
       '<div class="qprogress">' + bar(Math.round(dIdx / total * 100)) + '</div>' +
       '<div class="pill">' + (dIdx + 1) + ' / ' + total + '</div></div>';
   }
   function ratingRow(suggest) {
-    const tag = (g, txt) => '<button class="btn' + (g === 2 ? ' good' : '') + (g === suggest ? ' suggested' : '') + '" data-grade="' + g + '">' + txt + '</button>';
-    return '<div class="rate-hint">How well did you recall it?</div><div class="rate-row">' +
-      tag(0, 'Again<small>&lt; 1 min</small>') + tag(1, 'Hard<small>soon</small>') +
-      tag(2, 'Good<small>days</small>') + tag(3, 'Easy<small>longer</small>') + '</div>';
+    const tag = (g, label, hint) => '<button class="btn' + (g === 2 ? ' good' : '') + (g === suggest ? ' suggested' : '') + '" data-grade="' + g + '">' + esc(tr(label)) + '<small>' + esc(tr(hint)) + '</small></button>';
+    return '<div class="rate-hint">' + tr('How well did you recall it?') + '</div><div class="rate-row">' +
+      tag(0, 'Again', '< 1 min') + tag(1, 'Hard', 'soon') +
+      tag(2, 'Good', 'days') + tag(3, 'Easy', 'longer') + '</div>';
   }
   function qPanel(c) {
-    return '<div class="fc-q"><span class="label">Question</span><span class="topic">' + esc(c.domainName) + '</span><div class="q">' + esc(c.front) + '</div></div>';
+    return '<div class="fc-q"><span class="label">' + tr('Question') + '</span><span class="topic">' + esc(c.domainName) + '</span><div class="q">' + esc(c.front) + '</div></div>';
   }
   function bindRating() {
     on('[data-grade]', 'click', function () {
@@ -320,10 +335,10 @@
     render(deckHeader() +
       '<div class="flashcard' + (flipped ? ' flipped' : '') + '" id="fcard">' +
         '<div class="flashcard-inner">' +
-          '<div class="flash-face flash-front"><span class="label">Question</span><span class="topic">' + esc(c.domainName) + '</span><div class="q">' + esc(c.front) + '</div></div>' +
-          '<div class="flash-face flash-back"><span class="label">Answer</span><span class="topic">' + esc(c.topic || '') + '</span><div class="a">' + esc(c.back) + '</div></div>' +
+          '<div class="flash-face flash-front"><span class="label">' + tr('Question') + '</span><span class="topic">' + esc(c.domainName) + '</span><div class="q">' + esc(c.front) + '</div></div>' +
+          '<div class="flash-face flash-back"><span class="label">' + tr('Answer') + '</span><span class="topic">' + esc(c.topic || '') + '</span><div class="a">' + esc(c.back) + '</div></div>' +
         '</div></div>' +
-      (flipped ? ratingRow(-1) : '<div class="flash-hint">Click the card to reveal the answer</div>'));
+      (flipped ? ratingRow(-1) : '<div class="flash-hint">' + tr('Click the card to reveal the answer') + '</div>'));
     $('#fcard').addEventListener('click', function () { if (dPhase === 'answer') { dPhase = 'review'; renderCard(); } });
     if (flipped) bindRating();
   }
@@ -340,10 +355,10 @@
     let tail = '';
     if (answered) {
       const right = dSel === correct;
-      tail = '<div class="verdict ' + (right ? 'good' : 'bad') + '"><span class="vh">' + (right ? '✓ Correct' : '✗ Incorrect') + '</span>' +
-        (right ? '' : ' — the right answer is highlighted above.') + '</div>' + ratingRow(right ? 2 : 0);
+      tail = '<div class="verdict ' + (right ? 'good' : 'bad') + '"><span class="vh">' + (right ? '✓ ' + tr('Correct') : '✗ ' + tr('Incorrect')) + '</span>' +
+        (right ? '' : ' — ' + tr('the right answer is highlighted above.')) + '</div>' + ratingRow(right ? 2 : 0);
     } else {
-      tail = '<div class="flash-hint">Pick the answer you think is correct</div>';
+      tail = '<div class="flash-hint">' + tr('Pick the answer you think is correct') + '</div>';
     }
     render(deckHeader() + qPanel(c) + '<div class="options" id="opts">' + opts + '</div>' + tail);
     if (!answered) on('[data-opt]', 'click', function () { dSel = parseInt(this.getAttribute('data-opt'), 10); dPhase = 'review'; renderCard(); });
@@ -354,19 +369,19 @@
     const answered = dPhase === 'review';
     let body;
     if (!answered) {
-      body = '<input class="fc-input" id="fcinput" placeholder="Type your answer…" aria-label="Your answer" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(dTyped) + '">' +
-        '<div class="btn-row mt"><button class="btn primary" id="fccheck">Check answer</button>' +
-        '<button class="btn ghost" id="fcreveal">Skip / reveal</button></div>' +
-        '<div class="flash-hint">Spelling and capitalization are forgiven — just get the idea across.</div>';
+      body = '<input class="fc-input" id="fcinput" placeholder="' + esc(tr('Type your answer…')) + '" aria-label="' + esc(tr('Your answer')) + '" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(dTyped) + '">' +
+        '<div class="btn-row mt"><button class="btn primary" id="fccheck">' + tr('Check answer') + '</button>' +
+        '<button class="btn ghost" id="fcreveal">' + tr('Skip / reveal') + '</button></div>' +
+        '<div class="flash-hint">' + tr('Spelling and capitalization are forgiven — just get the idea across.') + '</div>';
     } else {
       const v = dVerdict || { match: false };
       const cls = v.match ? 'good' : (v.partial ? 'warn' : 'bad');
-      const head = v.empty ? '✗ No answer' : (v.match ? '✓ Correct (close enough)' : (v.partial ? '◐ Partially right' : '✗ Not quite'));
+      const head = v.empty ? '✗ ' + tr('No answer') : (v.match ? '✓ ' + tr('Correct (close enough)') : (v.partial ? '◐ ' + tr('Partially right') : '✗ ' + tr('Not quite')));
       const suggest = v.match ? 2 : (v.partial ? 1 : 0);
       body = '<div class="verdict ' + cls + '"><span class="vh">' + head + '</span>' +
-        (v.empty ? '' : ' <span class="faint" style="font-size:12px">· ' + v.coverage + '% of key terms matched</span>') + '</div>' +
-        (dTyped ? '<div class="ans-reveal"><div class="lbl">Your answer</div><div class="val">' + esc(dTyped) + '</div></div>' : '') +
-        '<div class="ans-reveal"><div class="lbl">Correct answer</div><div class="val correct-ans">' + esc(c.back) + '</div></div>' +
+        (v.empty ? '' : ' <span class="faint" style="font-size:12px">· ' + tr('{pct}% of key terms matched', { pct: v.coverage }) + '</span>') + '</div>' +
+        (dTyped ? '<div class="ans-reveal"><div class="lbl">' + tr('Your answer') + '</div><div class="val">' + esc(dTyped) + '</div></div>' : '') +
+        '<div class="ans-reveal"><div class="lbl">' + tr('Correct answer') + '</div><div class="val correct-ans">' + esc(c.back) + '</div></div>' +
         ratingRow(suggest);
     }
     render(deckHeader() + qPanel(c) + body);
@@ -382,11 +397,11 @@
 
   function finishDeck() {
     const s = Flashcards.stats(deck.domainId);
-    render('<div class="empty-state"><div class="big">🎉</div><h2>Session complete</h2>' +
-      '<p class="muted">You reviewed ' + deck.cards.length + ' cards. ' + s.due + ' still due · ' + s.mastered + ' mastered.</p>' +
+    render('<div class="empty-state"><div class="big">🎉</div><h2>' + tr('Session complete') + '</h2>' +
+      '<p class="muted">' + tr('You reviewed {n} cards. {due} still due · {mastered} mastered.', { n: deck.cards.length, due: s.due, mastered: s.mastered }) + '</p>' +
       '<div class="btn-row center mt" style="justify-content:center">' +
-      '<a class="btn primary" href="#/cards">More flashcards</a>' +
-      '<a class="btn" href="#/practice">Practice questions</a></div></div>');
+      '<a class="btn primary" href="#/cards">' + tr('More flashcards') + '</a>' +
+      '<a class="btn" href="#/practice">' + tr('Practice questions') + '</a></div></div>');
     maybeSuggestLevelUp();
   }
 
@@ -399,20 +414,20 @@
 
     const domainChoices = KCNA.all().map((d) =>
       '<div class="choice" data-mode="practice" data-domain="' + d.id + '"><div class="ct">' + esc(d.name) + '</div>' +
-      '<div class="cd">' + d.weight + '% · ' + (d.questions || []).length + ' questions</div></div>').join('');
-    render('<div class="page-head"><h1>Practice</h1><p>Quiz by domain, run a diagnostic, or sit a full timed mock exam (60 questions, 90 minutes, pass at 75%).</p></div>' +
+      '<div class="cd">' + tr('{weight}% · {questions} questions', { weight: d.weight, questions: (d.questions || []).length }) + '</div></div>').join('');
+    render('<div class="page-head"><h1>' + tr('Practice') + '</h1><p>' + tr('Quiz by domain, run a diagnostic, or sit a full timed mock exam (60 questions, 90 minutes, pass at 75%).') + '</p></div>' +
       '<div class="grid cols-2">' +
-        '<div class="card"><h2>📝 Full Mock Exam</h2><p class="muted">60 questions, weighted exactly like the real KCNA, 90-minute timer. No feedback until the end — just like exam day.</p>' +
-          '<button class="btn primary mt" data-mode="mock">Start mock exam ›</button></div>' +
-        '<div class="card"><h2>🎯 Diagnostic</h2><p class="muted">25 balanced questions to assess where you stand and seed your readiness score. Best taken first.</p>' +
-          '<button class="btn primary mt" data-mode="diagnostic">Run diagnostic ›</button></div>' +
+        '<div class="card"><h2>📝 ' + tr('Full Mock Exam') + '</h2><p class="muted">' + tr('60 questions, weighted exactly like the real KCNA, 90-minute timer. No feedback until the end — just like exam day.') + '</p>' +
+          '<button class="btn primary mt" data-mode="mock">' + tr('Start mock exam ›') + '</button></div>' +
+        '<div class="card"><h2>🎯 ' + tr('Diagnostic') + '</h2><p class="muted">' + tr('25 balanced questions to assess where you stand and seed your readiness score. Best taken first.') + '</p>' +
+          '<button class="btn primary mt" data-mode="diagnostic">' + tr('Run diagnostic ›') + '</button></div>' +
       '</div>' +
-      '<h2 style="margin:24px 0 12px">Practice by domain</h2>' +
-      '<p class="muted" style="margin:-6px 0 14px">Immediate feedback after each question.</p>' +
+      '<h2 style="margin:24px 0 12px">' + tr('Practice by domain') + '</h2>' +
+      '<p class="muted" style="margin:-6px 0 14px">' + tr('Immediate feedback after each question.') + '</p>' +
       '<div class="choice-grid">' + domainChoices + '</div>' +
-      '<div class="card mt-lg"><div class="spread"><h2 style="margin:0">⚡ Mixed quick quiz</h2></div>' +
-        '<p class="muted" style="margin:8px 0 0">20 questions across all domains.</p>' +
-        '<button class="btn mt" data-mode="practice" data-mixed="1">Start mixed quiz ›</button></div>');
+      '<div class="card mt-lg"><div class="spread"><h2 style="margin:0">⚡ ' + tr('Mixed quick quiz') + '</h2></div>' +
+        '<p class="muted" style="margin:8px 0 0">' + tr('20 questions across all domains.') + '</p>' +
+        '<button class="btn mt" data-mode="practice" data-mixed="1">' + tr('Start mixed quiz ›') + '</button></div>');
     on('[data-mode]', 'click', function () {
       const mode = this.getAttribute('data-mode');
       const domain = this.getAttribute('data-domain');
@@ -433,7 +448,7 @@
       sTimer = setInterval(tickTimer, 1000);
     }
     if (!session.questions.length) {
-      render('<div class="empty-state">No questions available yet. <a href="#/practice">Back</a></div>');
+      render('<div class="empty-state">' + tr('No questions available yet.') + ' <a href="#/practice">' + tr('Back') + '</a></div>');
       return;
     }
     renderQuestion();
@@ -458,22 +473,22 @@
       return '<div class="' + cls + '" data-opt="' + i + '"><span class="key">' + letter(i) + '</span><div>' + esc(o) + '</div></div>';
     }).join('');
 
-    const diffTag = q.difficulty ? '<span class="pill tag-' + q.difficulty + '">' + q.difficulty + '</span>' : '';
+    const diffTag = q.difficulty ? '<span class="pill tag-' + q.difficulty + '">' + tr(q.difficulty) + '</span>' : '';
 
     render('<div class="quiz-top">' +
-        '<div class="row"><span class="pill accent">' + esc(session.title) + '</span><span class="pill">' + esc(q.domainName) + '</span>' + diffTag + '</div>' +
+        '<div class="row"><span class="pill accent">' + trTitle(session.title) + '</span><span class="pill">' + esc(q.domainName) + '</span>' + diffTag + '</div>' +
         timerHtml +
       '</div>' +
-      '<div class="qprogress" style="margin-bottom:16px">' + bar(Math.round(sIdx / total * 100)) + '<div class="faint mt" style="font-size:12.5px">Question ' + (sIdx + 1) + ' of ' + total + '</div></div>' +
+      '<div class="qprogress" style="margin-bottom:16px">' + bar(Math.round(sIdx / total * 100)) + '<div class="faint mt" style="font-size:12.5px">' + tr('Question {n} of {total}', { n: sIdx + 1, total: total }) + '</div></div>' +
       '<div class="card pad-lg"><div class="qtext">' + esc(q.question) + '</div>' +
         '<div class="options" id="opts">' + opts + '</div>' +
-        (showFeedback ? '<div class="explain"><div class="lbl">' + (answered === q.correctIndex ? '✓ Correct' : '✗ Incorrect — answer: ' + letter(q.correctIndex)) + '</div><div class="mt" style="margin-top:6px">' + esc(q.explanation) + '</div></div>' : '') +
+        (showFeedback ? '<div class="explain"><div class="lbl">' + (answered === q.correctIndex ? '✓ ' + tr('Correct') : '✗ ' + tr('Incorrect — answer: {letter}', { letter: letter(q.correctIndex) })) + '</div><div class="mt" style="margin-top:6px">' + esc(q.explanation) + '</div></div>' : '') +
       '</div>' +
       '<div class="quiz-nav">' +
-        (sIdx > 0 ? '<button class="btn" id="prev">‹ Previous</button>' : '<span></span>') +
+        (sIdx > 0 ? '<button class="btn" id="prev">' + tr('‹ Previous') + '</button>' : '<span></span>') +
         (sIdx < total - 1
-          ? '<button class="btn primary" id="next">Next ›</button>'
-          : '<button class="btn good" id="finish">Finish &amp; score ›</button>') +
+          ? '<button class="btn primary" id="next">' + tr('Next ›') + '</button>'
+          : '<button class="btn good" id="finish">' + tr('Finish & score ›') + '</button>') +
       '</div>');
 
     on('[data-opt]', 'click', function () {
@@ -521,21 +536,21 @@
         '<div><div class="faint" style="font-size:12px">' + esc(q.domainName) + ' · ' + esc(q.topic || '') + '</div>' +
         '<strong>' + (i + 1) + '. ' + esc(q.question) + '</strong></div></div>' +
         '<div class="options mt">' + opts + '</div>' +
-        '<div class="explain"><div class="lbl">Explanation</div><div style="margin-top:6px">' + esc(q.explanation) + '</div></div></div>';
+        '<div class="explain"><div class="lbl">' + tr('Explanation') + '</div><div style="margin-top:6px">' + esc(q.explanation) + '</div></div></div>';
     }).join('');
 
     render('<div class="card pad-lg center">' +
-        '<div class="eyebrow">' + esc(session.title) + ' — result</div>' +
+        '<div class="eyebrow">' + trTitle(session.title) + ' — ' + tr('result') + '</div>' +
         '<div class="scorebig ' + (res.passed ? 'tag-easy' : 'tag-hard') + '">' + res.pct + '%</div>' +
-        '<div class="row" style="justify-content:center;gap:10px;margin-top:8px"><span class="pill ' + pillClass + '">' + (res.passed ? 'PASS' : 'Below pass mark') + '</span>' +
-        '<span class="muted">' + res.correct + ' / ' + res.total + ' correct · pass mark ' + KCNA.meta.passPct + '%</span></div>' +
+        '<div class="row" style="justify-content:center;gap:10px;margin-top:8px"><span class="pill ' + pillClass + '">' + (res.passed ? tr('PASS') : tr('Below pass mark')) + '</span>' +
+        '<span class="muted">' + tr('{correct} / {total} correct · pass mark {pass}%', { correct: res.correct, total: res.total, pass: KCNA.meta.passPct }) + '</span></div>' +
         (session.mode === 'mock' || session.mode === 'diagnostic'
-          ? '<p class="muted mt">Your readiness score has been updated. <a href="#/readiness">See full analysis ›</a></p>' : '') +
+          ? '<p class="muted mt">' + tr('Your readiness score has been updated.') + ' <a href="#/readiness">' + tr('See full analysis ›') + '</a></p>' : '') +
       '</div>' +
-      '<div class="card mt-lg"><h2>By domain</h2>' + perDomain + '</div>' +
-      '<div class="btn-row mt-lg"><a class="btn primary" href="#/practice">Another round</a>' +
-        '<a class="btn" href="#/readiness">Readiness</a><a class="btn" href="#/dashboard">Dashboard</a></div>' +
-      '<h2 style="margin:26px 0 12px">Review all ' + res.total + ' questions</h2>' + review);
+      '<div class="card mt-lg"><h2>' + tr('By domain') + '</h2>' + perDomain + '</div>' +
+      '<div class="btn-row mt-lg"><a class="btn primary" href="#/practice">' + tr('Another round') + '</a>' +
+        '<a class="btn" href="#/readiness">' + tr('Readiness') + '</a><a class="btn" href="#/dashboard">' + tr('Dashboard') + '</a></div>' +
+      '<h2 style="margin:26px 0 12px">' + tr('Review all {total} questions', { total: res.total }) + '</h2>' + review);
     maybeSuggestLevelUp();
   }
 
@@ -546,51 +561,51 @@
 
     const domainRows = r.perDomain.map((d) => {
       const cls = d.answered < 3 ? '' : Readiness.colorClass(d.masteryPct);
-      return '<div class="domain-row"><div class="meta"><span class="name">' + esc(d.name) + '</span><span class="pill">' + d.weight + '% weight</span></div>' +
+      return '<div class="domain-row"><div class="meta"><span class="name">' + esc(d.name) + '</span><span class="pill">' + tr('{weight}% weight', { weight: d.weight }) + '</span></div>' +
         '<div class="domain-score">' + (d.answered ? d.masteryPct + '%' : '—') + '</div>' +
         bar(d.answered ? d.masteryPct : 0, cls) +
         '<div class="faint" style="grid-column:1/-1;font-size:12px;margin-top:4px">' +
-          (d.answered ? d.answered + ' answered · coverage ' + d.coverage + '%' : 'Not practiced yet') +
-          ' · <a href="#/practice?domain=' + d.id + '">quiz ›</a></div></div>';
+          (d.answered ? tr('{answered} answered · coverage {coverage}%', { answered: d.answered, coverage: d.coverage }) : tr('Not practiced yet')) +
+          ' · <a href="#/practice?domain=' + d.id + '">' + tr('quiz ›') + '</a></div></div>';
     }).join('');
 
     const recs = [];
     const ap = StudyPlan.approach();
-    recs.push('<strong>' + esc(ap.label) + ' track:</strong> ' + esc(ap.blurb) + ' <a href="#/settings">Change ›</a>');
-    if (r.totalAnswered < 20) recs.push('Take the <a href="#/practice?diagnostic=1">25-question Diagnostic</a> to establish your baseline.');
-    r.unassessed.forEach((d) => recs.push('You have not practiced <strong>' + esc(d.name) + '</strong> (' + d.weight + '% of the exam) yet — <a href="#/practice?domain=' + d.id + '">start a quiz ›</a>'));
+    recs.push('<strong>' + tr('{label} track:', { label: esc(tr(ap.label)) }) + '</strong> ' + esc(tr(ap.blurb)) + ' <a href="#/settings">' + tr('Change ›') + '</a>');
+    if (r.totalAnswered < 20) recs.push(tr('Take the {link} to establish your baseline.', { link: '<a href="#/practice?diagnostic=1">' + tr('25-question Diagnostic') + '</a>' }));
+    r.unassessed.forEach((d) => recs.push(tr('You have not practiced {name} ({weight}% of the exam) yet — {link}', { name: '<strong>' + esc(d.name) + '</strong>', weight: d.weight, link: '<a href="#/practice?domain=' + d.id + '">' + tr('start a quiz ›') + '</a>' })));
     r.weakest.filter((d) => d.masteryPct < 75).forEach((d) =>
-      recs.push('Weak area: <strong>' + esc(d.name) + '</strong> at ' + d.masteryPct + '% — <a href="#/learn/' + d.id + '">re-read notes</a> then <a href="#/practice?domain=' + d.id + '">re-quiz</a>.'));
-    if (r.readiness >= 78) recs.push('You are tracking well — keep mock scores above ' + r.passPct + '% and flashcards green through exam day.');
-    if (!recs.length) recs.push('Keep practicing across all domains and sit a <a href="#/practice?mock=1">full mock exam</a>.');
+      recs.push(tr('Weak area: {name} at {pct}% — {reread} then {requiz}.', { name: '<strong>' + esc(d.name) + '</strong>', pct: d.masteryPct, reread: '<a href="#/learn/' + d.id + '">' + tr('re-read notes') + '</a>', requiz: '<a href="#/practice?domain=' + d.id + '">' + tr('re-quiz') + '</a>' })));
+    if (r.readiness >= 78) recs.push(tr('You are tracking well — keep mock scores above {pass}% and flashcards green through exam day.', { pass: r.passPct }));
+    if (!recs.length) recs.push(tr('Keep practicing across all domains and sit a {link}.', { link: '<a href="#/practice?mock=1">' + tr('full mock exam') + '</a>' }));
 
     const histRows = hist.length ? hist.slice(0, 12).map((h) => {
       const dt = new Date(h.date);
-      return '<div class="domain-row"><div class="meta"><span class="name">' + esc(h.title || h.mode) + '</span>' +
+      return '<div class="domain-row"><div class="meta"><span class="name">' + (h.title ? trTitle(h.title) : esc(tr(h.mode))) + '</span>' +
         '<span class="faint" style="font-size:12px">' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span></div>' +
         '<div class="domain-score"><span class="' + (h.pct >= KCNA.meta.passPct ? 'tag-easy' : 'tag-hard') + '">' + h.pct + '%</span></div></div>';
-    }).join('') : '<p class="muted">No attempts yet. Take a quiz or mock to populate your history.</p>';
+    }).join('') : '<p class="muted">' + tr('No attempts yet. Take a quiz or mock to populate your history.') + '</p>';
 
-    render('<div class="page-head"><div class="spread wrap"><div><h1>Readiness analysis</h1><p>An honest read on whether you are ready to pass the KCNA before the Oct 1 deadline.</p></div>' +
-      '<a class="btn" href="#/report">📄 Progress report</a></div></div>' +
+    render('<div class="page-head"><div class="spread wrap"><div><h1>' + tr('Readiness analysis') + '</h1><p>' + tr('An honest read on whether you are ready to pass the KCNA before the Oct 1 deadline.') + '</p></div>' +
+      '<a class="btn" href="#/report">📄 ' + tr('Progress report') + '</a></div></div>' +
       '<div class="hero">' +
         '<div class="card pad-lg"><div class="gauge-wrap">' + gauge(r.readiness, true) +
-          '<div><span class="pill ' + r.levelClass + '">' + r.level + '</span>' +
-          '<div class="mt-lg"><div class="spread"><span class="muted">Predicted exam score</span><strong>' + (r.totalAnswered < 20 ? '—' : '~' + r.predictedScore + '%') + '</strong></div>' +
-          '<div class="spread mt"><span class="muted">Pass likelihood</span><span class="pill ' + r.likelihoodClass + '">' + r.likelihood + '</span></div>' +
-          '<div class="spread mt"><span class="muted">Questions answered</span><strong>' + r.totalAnswered + '</strong></div>' +
-          '<div class="spread mt"><span class="muted">Material assessed</span><strong>' + Math.round(r.assessedShare * 100) + '%</strong></div></div></div></div></div>' +
-        '<div class="card"><h2>What to do next</h2><ul style="padding-left:18px;line-height:1.9;margin:0">' +
+          '<div><span class="pill ' + r.levelClass + '">' + tr(r.level) + '</span>' +
+          '<div class="mt-lg"><div class="spread"><span class="muted">' + tr('Predicted exam score') + '</span><strong>' + (r.totalAnswered < 20 ? '—' : '~' + r.predictedScore + '%') + '</strong></div>' +
+          '<div class="spread mt"><span class="muted">' + tr('Pass likelihood') + '</span><span class="pill ' + r.likelihoodClass + '">' + tr(r.likelihood) + '</span></div>' +
+          '<div class="spread mt"><span class="muted">' + tr('Questions answered') + '</span><strong>' + r.totalAnswered + '</strong></div>' +
+          '<div class="spread mt"><span class="muted">' + tr('Material assessed') + '</span><strong>' + Math.round(r.assessedShare * 100) + '%</strong></div></div></div></div></div>' +
+        '<div class="card"><h2>' + tr('What to do next') + '</h2><ul style="padding-left:18px;line-height:1.9;margin:0">' +
           recs.map((x) => '<li>' + x + '</li>').join('') + '</ul></div>' +
       '</div>' +
-      '<div class="card mt-lg"><h2>Mastery by domain</h2>' + (KCNA.ready() ? domainRows : '<p class="muted">Content loading…</p>') + '</div>' +
-      '<div class="card mt-lg"><h2>Attempt history</h2>' + histRows + '</div>' +
-      '<div class="card mt-lg"><div class="spread"><div><h2 style="margin:0">Reset progress</h2><p class="muted" style="margin:6px 0 0">Clears flashcard schedule, quiz stats, and plan checkboxes.</p></div>' +
-        '<button class="btn" id="reset">Reset all</button></div></div>');
+      '<div class="card mt-lg"><h2>' + tr('Mastery by domain') + '</h2>' + (KCNA.ready() ? domainRows : '<p class="muted">' + tr('Content loading…') + '</p>') + '</div>' +
+      '<div class="card mt-lg"><h2>' + tr('Attempt history') + '</h2>' + histRows + '</div>' +
+      '<div class="card mt-lg"><div class="spread"><div><h2 style="margin:0">' + tr('Reset progress') + '</h2><p class="muted" style="margin:6px 0 0">' + tr('Clears flashcard schedule, quiz stats, and plan checkboxes.') + '</p></div>' +
+        '<button class="btn" id="reset">' + tr('Reset all') + '</button></div></div>');
 
     const rb = $('#reset');
     if (rb) rb.addEventListener('click', function () {
-      if (confirm('Reset all your progress? This cannot be undone.')) { Store.reset(); go('#/dashboard'); location.reload(); }
+      if (confirm(tr('Reset all your progress? This cannot be undone.'))) { Store.reset(); go('#/dashboard'); location.reload(); }
     });
   }
 
@@ -602,25 +617,25 @@
       const wpct = w.total ? Math.round(w.doneCount / w.total * 100) : 0;
       const done = w.doneCount === w.total && w.total > 0;
       return '<div class="week ' + (w.isCurrent ? 'current' : '') + ' ' + (done ? 'done' : '') + '">' +
-        '<div class="wh"><div><span class="wk">Week ' + w.num + '</span> ' + (w.isCurrent ? '<span class="pill accent">this week</span>' : '') + (done ? ' <span class="pill good">done</span>' : '') +
-          '<div class="muted" style="margin-top:2px">' + esc(w.focus) + '</div></div>' +
+        '<div class="wh"><div><span class="wk">' + tr('Week {n}', { n: w.num }) + '</span> ' + (w.isCurrent ? '<span class="pill accent">' + tr('this week') + '</span>' : '') + (done ? ' <span class="pill good">' + tr('done') + '</span>' : '') +
+          '<div class="muted" style="margin-top:2px">' + esc(tr(w.focus)) + '</div></div>' +
           '<div class="dates">' + w.range + ' · ' + w.doneCount + '/' + w.total + '</div></div>' +
-        '<p class="faint" style="margin:0 0 10px;font-size:13px">🎯 ' + esc(w.goal) + '</p>' +
+        '<p class="faint" style="margin:0 0 10px;font-size:13px">🎯 ' + esc(tr(w.goal)) + '</p>' +
         w.tasks.map((t) => '<div class="task ' + (t.done ? 'done' : '') + '"><input type="checkbox" data-task="' + t.id + '" ' + (t.done ? 'checked' : '') + '>' +
-          '<label>' + esc(t.text) + (t.link ? ' <a href="' + t.link + '">open ›</a>' : '') + '</label></div>').join('') +
+          '<label>' + esc(tr(t.text)) + (t.link ? ' <a href="' + t.link + '">' + tr('open ›') + '</a>' : '') + '</label></div>').join('') +
         '</div>';
     }).join('');
 
     const ap = plan.approach;
-    render('<div class="page-head"><div class="spread"><div><h1>Study plan</h1><p>' + plan.daysLeft + ' days until the Oct 1 deadline.</p></div>' +
-      '<span class="pill accent">' + plan.doneTasks + ' / ' + plan.totalTasks + ' tasks</span></div></div>' +
+    render('<div class="page-head"><div class="spread"><div><h1>' + tr('Study plan') + '</h1><p>' + tr('{days} days until the Oct 1 deadline.', { days: plan.daysLeft }) + '</p></div>' +
+      '<span class="pill accent">' + tr('{done} / {total} tasks', { done: plan.doneTasks, total: plan.totalTasks }) + '</span></div></div>' +
       '<div class="card approach-card" style="margin-bottom:18px"><div class="spread wrap"><div>' +
-        '<div class="eyebrow">Tailored for · ' + esc(ap.label) + '</div>' +
-        '<p class="muted" style="margin:2px 0 0;max-width:62ch">' + esc(ap.blurb) + '</p></div>' +
-        '<div class="approach-meta"><span class="pill accent">' + esc(ap.hours) + '</span></div>' +
-      '</div><div class="btn-row mt"><a class="btn sm ghost" href="#/settings">Change level ›</a></div></div>' +
-      '<div class="card" style="margin-bottom:18px"><div class="spread"><strong>Overall progress</strong><span>' + pct + '%</span></div><div class="mt">' + bar(pct) + '</div>' +
-      '<p class="muted mt" style="font-size:13px;margin-bottom:0">Check tasks off as you go — progress is saved on this device and feeds your dashboard.</p></div>' +
+        '<div class="eyebrow">' + tr('Tailored for · {label}', { label: esc(tr(ap.label)) }) + '</div>' +
+        '<p class="muted" style="margin:2px 0 0;max-width:62ch">' + esc(tr(ap.blurb)) + '</p></div>' +
+        '<div class="approach-meta"><span class="pill accent">' + esc(tr(ap.hours)) + '</span></div>' +
+      '</div><div class="btn-row mt"><a class="btn sm ghost" href="#/settings">' + tr('Change level ›') + '</a></div></div>' +
+      '<div class="card" style="margin-bottom:18px"><div class="spread"><strong>' + tr('Overall progress') + '</strong><span>' + pct + '%</span></div><div class="mt">' + bar(pct) + '</div>' +
+      '<p class="muted mt" style="font-size:13px;margin-bottom:0">' + tr('Check tasks off as you go — progress is saved on this device and feeds your dashboard.') + '</p></div>' +
       weeks);
     bindPlanChecks();
   }
@@ -648,17 +663,17 @@
   function examFactsCard() {
     const m = KCNA.meta;
     const rows = [
-      ['Format', m.examQuestions + ' multiple-choice questions'],
-      ['Duration', m.examMinutes + ' minutes'],
-      ['Passing score', m.passPct + '%'],
-      ['Delivery', 'Online, remotely proctored'],
-      ['Cost / validity', 'See the official exam page (includes free retake)'],
+      [tr('Format'), tr('{n} multiple-choice questions', { n: m.examQuestions })],
+      [tr('Duration'), tr('{n} minutes', { n: m.examMinutes })],
+      [tr('Passing score'), m.passPct + '%'],
+      [tr('Delivery'), tr('Online, remotely proctored')],
+      [tr('Cost / validity'), tr('See the official exam page (includes free retake)')],
     ];
-    return '<div class="card"><h2>📋 Exam at a glance</h2>' +
+    return '<div class="card"><h2>📋 ' + tr('Exam at a glance') + '</h2>' +
       '<div class="facts">' + rows.map((r) =>
         '<div class="fact"><span class="fk">' + esc(r[0]) + '</span><span class="fv">' + esc(r[1]) + '</span></div>').join('') +
       '</div>' +
-      '<h3 style="margin-top:16px">Domain weights</h3>' +
+      '<h3 style="margin-top:16px">' + tr('Domain weights') + '</h3>' +
       KCNA.all().map((d) => '<div class="domain-row"><div class="meta"><span class="name">' + esc(d.name) + '</span></div>' +
         '<div class="domain-score">' + d.weight + '%</div>' + bar(d.weight, '') + '</div>').join('') +
       '</div>';
@@ -666,17 +681,17 @@
 
   function glossarySection(filter) {
     if (!KCNA.hasGlossary || !KCNA.hasGlossary()) {
-      return '<p class="muted">Glossary is being compiled. Check back after the next update.</p>';
+      return '<p class="muted">' + tr('Glossary is being compiled. Check back after the next update.') + '</p>';
     }
     const q = (filter || '').trim().toLowerCase();
     const terms = KCNA.glossary().filter((t) => !q || t.term.toLowerCase().indexOf(q) >= 0 || t.definition.toLowerCase().indexOf(q) >= 0);
-    if (!terms.length) return '<p class="muted">No glossary terms match “' + esc(filter) + '”.</p>';
+    if (!terms.length) return '<p class="muted">' + tr('No glossary terms match “{q}”.', { q: esc(filter) }) + '</p>';
     return '<div class="glossary" id="glossary-list">' + terms.map((t) => {
       const dn = (KCNA.domain(t.domain) || {}).name || '';
       return '<div class="gterm" id="term-' + esc(slug(t.term)) + '"><div class="spread"><strong>' + esc(t.term) + '</strong>' +
         (dn ? '<span class="pill">' + esc(dn) + '</span>' : '') + '</div>' +
         '<p class="muted" style="margin:6px 0 0">' + esc(t.definition) + '</p>' +
-        (t.sourceUrl ? '<a class="faint gsrc" href="' + esc(t.sourceUrl) + '" target="_blank" rel="noopener noreferrer">source ↗</a>' : '') +
+        (t.sourceUrl ? '<a class="faint gsrc" href="' + esc(t.sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + tr('source ↗') + '</a>' : '') +
         '</div>';
     }).join('') + '</div>';
   }
@@ -698,14 +713,14 @@
           (r.note ? '<div class="faint">' + esc(r.note) + '</div>' : '') + '</li>').join('') + '</ul></div>';
     }).join('');
 
-    render('<div class="page-head"><h1>Reference &amp; knowledge base</h1><p>Exam facts, a searchable glossary, and authoritative documentation for every domain.</p></div>' +
+    render('<div class="page-head"><h1>' + tr('Reference & knowledge base') + '</h1><p>' + tr('Exam facts, a searchable glossary, and authoritative documentation for every domain.') + '</p></div>' +
       '<div class="grid cols-2">' + examFactsCard() +
-        '<div class="card"><h2>🔗 Official resources</h2><ul class="ref-list">' + officialHtml + '</ul></div>' +
+        '<div class="card"><h2>🔗 ' + tr('Official resources') + '</h2><ul class="ref-list">' + officialHtml + '</ul></div>' +
       '</div>' +
-      '<div class="card mt-lg"><div class="spread wrap"><h2 style="margin:0">📚 Glossary</h2>' +
-        '<input class="fc-input gloss-search" id="gloss-search" placeholder="Filter terms…" autocomplete="off" aria-label="Filter glossary terms" style="max-width:280px" value="' + esc(params.q || '') + '"></div>' +
+      '<div class="card mt-lg"><div class="spread wrap"><h2 style="margin:0">📚 ' + tr('Glossary') + '</h2>' +
+        '<input class="fc-input gloss-search" id="gloss-search" placeholder="' + esc(tr('Filter terms…')) + '" autocomplete="off" aria-label="' + esc(tr('Filter glossary terms')) + '" style="max-width:280px" value="' + esc(params.q || '') + '"></div>' +
         '<div id="gloss-wrap" class="mt">' + glossarySection(params.q || '') + '</div></div>' +
-      (perDomain ? '<h2 style="margin:26px 0 14px">Documentation by domain</h2><div class="grid cols-2">' + perDomain + '</div>' : ''));
+      (perDomain ? '<h2 style="margin:26px 0 14px">' + tr('Documentation by domain') + '</h2><div class="grid cols-2">' + perDomain + '</div>' : ''));
 
     const gs = $('#gloss-search');
     if (gs) {
@@ -720,64 +735,72 @@
   /* ================= SETTINGS ================= */
   function seg(name, current, opts) {
     return '<div class="seg" data-seg="' + name + '">' + opts.map((o) =>
-      '<button data-val="' + o[0] + '" class="' + (o[0] === current ? 'active' : '') + '">' + esc(o[1]) + '</button>').join('') + '</div>';
+      '<button data-val="' + o[0] + '" class="' + (o[0] === current ? 'active' : '') + '">' + esc(tr(o[1])) + '</button>').join('') + '</div>';
   }
 
   function viewSettings() {
     const s = Settings.get();
     const m = KCNA.meta;
     const canInstall = window.PWA && PWA.canInstall();
-    render('<div class="page-head"><h1>Settings</h1><p>Personalize KCNA Prep. Everything is stored only on this device.</p></div>' +
-      '<div class="card"><h2>Appearance</h2>' +
-        '<div class="setting"><div><strong>Theme</strong><div class="faint">Auto follows your operating system.</div></div>' +
+    render('<div class="page-head"><h1>' + tr('Settings') + '</h1><p>' + tr('Personalize KCNA Prep. Everything is stored only on this device.') + '</p></div>' +
+      '<div class="card"><h2>' + tr('Appearance') + '</h2>' +
+        '<div class="setting"><div><strong>' + tr('Theme') + '</strong><div class="faint">' + tr('Auto follows your operating system.') + '</div></div>' +
           seg('theme', s.theme, [['auto', 'Auto'], ['dark', 'Dark'], ['light', 'Light']]) + '</div>' +
-        '<div class="setting"><div><strong>Motion</strong><div class="faint">Reduce animations and transitions.</div></div>' +
+        '<div class="setting"><div><strong>' + tr('Motion') + '</strong><div class="faint">' + tr('Reduce animations and transitions.') + '</div></div>' +
           seg('reducedMotion', s.reducedMotion, [['auto', 'Auto'], ['on', 'Reduced'], ['off', 'Full']]) + '</div>' +
       '</div>' +
 
-      '<div class="card mt-lg"><h2>Kubernetes experience</h2>' +
-        '<p class="muted" style="margin-top:0">Tailors your study plan, flashcard default, and practice question difficulty.</p>' +
-        '<div class="setting"><strong>Experience level</strong>' +
+      '<div class="card mt-lg"><h2>' + tr('Language') + '</h2>' +
+        '<p class="muted" style="margin-top:0">' + tr('Choose the language for the app interface. Study content stays in English to match the exam.') + '</p>' +
+        '<div class="setting"><strong>' + tr('Display language') + '</strong>' +
+          '<div class="seg" data-seg="lang">' + I18n.LANGS.map(function (o) {
+            return '<button data-val="' + o.code + '" lang="' + o.code + '" class="' + (o.code === Settings.lang() ? 'active' : '') + '">' + esc(o.native) + '</button>';
+          }).join('') + '</div></div></div>' +
+
+      '<div class="card mt-lg"><h2>' + tr('Kubernetes experience') + '</h2>' +
+        '<p class="muted" style="margin-top:0">' + tr('Tailors your study plan, flashcard default, and practice question difficulty.') + '</p>' +
+        '<div class="setting"><strong>' + tr('Experience level') + '</strong>' +
           seg('level', Settings.level(), [['none', 'New'], ['light', 'Some'], ['heavy', 'Experienced']]) + '</div>' +
-        '<p class="faint" style="margin:10px 0 0">' + esc(StudyPlan.approach().blurb) + '</p></div>' +
+        '<p class="faint" style="margin:10px 0 0">' + esc(tr(StudyPlan.approach().blurb)) + '</p></div>' +
 
-      '<div class="card mt-lg"><h2>Deadline &amp; plan</h2>' +
-        '<p class="muted" style="margin-top:0">Changing these updates your countdown, study plan, and readiness.</p>' +
-        '<div class="setting"><div><strong>Deadline (pass by)</strong><div class="faint">Company deadline to pass the KCNA.</div></div>' +
-          '<input type="date" id="exam-date" aria-label="Deadline date" class="fc-input" style="max-width:200px" value="' + esc(m.examDate) + '"></div>' +
-        '<div class="setting"><label for="plan-start"><strong>Plan start</strong></label>' +
+      '<div class="card mt-lg"><h2>' + tr('Deadline & plan') + '</h2>' +
+        '<p class="muted" style="margin-top:0">' + tr('Changing these updates your countdown, study plan, and readiness.') + '</p>' +
+        '<div class="setting"><div><strong>' + tr('Deadline (pass by)') + '</strong><div class="faint">' + tr('Company deadline to pass the KCNA.') + '</div></div>' +
+          '<input type="date" id="exam-date" aria-label="' + esc(tr('Deadline date')) + '" class="fc-input" style="max-width:200px" value="' + esc(m.examDate) + '"></div>' +
+        '<div class="setting"><label for="plan-start"><strong>' + tr('Plan start') + '</strong></label>' +
           '<input type="date" id="plan-start" class="fc-input" style="max-width:200px" value="' + esc(m.planStart) + '"></div>' +
-        '<div class="setting"><div><strong>Deadline warning</strong><div class="faint">Show or hide the dashboard deadline reminder.</div></div>' +
+        '<div class="setting"><div><strong>' + tr('Deadline warning') + '</strong><div class="faint">' + tr('Show or hide the dashboard deadline reminder.') + '</div></div>' +
           seg('deadlineWarn', s.deadlineDismissed ? 'off' : 'on', [['on', 'Show'], ['off', 'Hidden']]) + '</div>' +
-        '<div class="btn-row mt"><button class="btn primary" id="save-dates">Save dates</button>' +
-          '<button class="btn ghost" id="reset-dates">Reset to defaults</button></div></div>' +
+        '<div class="btn-row mt"><button class="btn primary" id="save-dates">' + tr('Save dates') + '</button>' +
+          '<button class="btn ghost" id="reset-dates">' + tr('Reset to defaults') + '</button></div></div>' +
 
-      '<div class="card mt-lg"><h2>Your progress</h2>' +
-        '<p class="muted" style="margin-top:0">Save or load your session from the <strong>save icon</strong> in the top bar — handy when several people share this device. Progress is stored on this device until you save it to a file.</p>' +
-        '<div class="btn-row"><button class="btn" id="reset-progress">Reset progress</button></div>' +
+      '<div class="card mt-lg"><h2>' + tr('Your progress') + '</h2>' +
+        '<p class="muted" style="margin-top:0">' + tr('Save or load your session from the <strong>save icon</strong> in the top bar — handy when several people share this device. Progress is stored on this device until you save it to a file.') + '</p>' +
+        '<div class="btn-row"><button class="btn" id="reset-progress">' + tr('Reset progress') + '</button></div>' +
         '<div id="settings-msg" class="mt" aria-live="polite"></div></div>' +
 
-      (canInstall ? '<div class="card mt-lg"><h2>Install</h2><p class="muted" style="margin-top:0">Install KCNA Prep as an app for offline study and a home-screen icon.</p>' +
-        '<button class="btn primary" id="install">📲 Install app</button></div>' : '') +
+      (canInstall ? '<div class="card mt-lg"><h2>' + tr('Install') + '</h2><p class="muted" style="margin-top:0">' + tr('Install KCNA Prep as an app for offline study and a home-screen icon.') + '</p>' +
+        '<button class="btn primary" id="install">📲 ' + tr('Install app') + '</button></div>' : '') +
 
-      '<div class="card mt-lg"><h2>About</h2>' +
-        '<div class="facts"><div class="fact"><span class="fk">Version</span><span class="fv">' + esc(m.version || '1.0.0') + '</span></div>' +
-        '<div class="fact"><span class="fk">Content</span><span class="fv">' + (KCNA.counts().questions) + ' questions · ' + KCNA.counts().flashcards + ' cards · ' + KCNA.counts().notes + ' notes</span></div>' +
-        '<div class="fact"><span class="fk">Offline</span><span class="fv">' + (window.PWA && PWA.isStandalone() ? 'Installed app' : 'Works offline after first load') + '</span></div></div>' +
-        '<div class="btn-row mt"><a class="btn sm" href="#/reference">Reference</a>' +
-        '<button class="btn sm ghost" id="show-shortcuts">⌨️ Keyboard shortcuts</button></div></div>');
+      '<div class="card mt-lg"><h2>' + tr('About') + '</h2>' +
+        '<div class="facts"><div class="fact"><span class="fk">' + tr('Version') + '</span><span class="fv">' + esc(m.version || '1.0.0') + '</span></div>' +
+        '<div class="fact"><span class="fk">' + tr('Content') + '</span><span class="fv">' + tr('{questions} questions · {flashcards} cards · {notes} notes', { questions: KCNA.counts().questions, flashcards: KCNA.counts().flashcards, notes: KCNA.counts().notes }) + '</span></div>' +
+        '<div class="fact"><span class="fk">' + tr('Offline') + '</span><span class="fv">' + (window.PWA && PWA.isStandalone() ? tr('Installed app') : tr('Works offline after first load')) + '</span></div></div>' +
+        '<div class="btn-row mt"><a class="btn sm" href="#/reference">' + tr('Reference') + '</a>' +
+        '<button class="btn sm ghost" id="show-shortcuts">⌨️ ' + tr('Keyboard shortcuts') + '</button></div></div>');
 
     // appearance
     on('[data-seg="theme"] button', 'click', function () { Settings.set({ theme: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="reducedMotion"] button', 'click', function () { Settings.set({ reducedMotion: this.getAttribute('data-val') }); viewSettings(); });
     on('[data-seg="deadlineWarn"] button', 'click', function () { Settings.set({ deadlineDismissed: this.getAttribute('data-val') === 'off' }); viewSettings(); });
     on('[data-seg="level"] button', 'click', function () { Settings.set({ level: this.getAttribute('data-val') }); updateChrome(); viewSettings(); });
+    on('[data-seg="lang"] button', 'click', function () { Settings.set({ lang: this.getAttribute('data-val') }); updateChrome(); viewSettings(); });
 
     // dates
     $('#save-dates').addEventListener('click', function () {
       const ed = $('#exam-date').value, ps = $('#plan-start').value;
       Settings.set({ examDate: ed || null, planStart: ps || null });
-      settingsMsg('Saved. Countdown and plan updated.', 'good');
+      settingsMsg(tr('Saved. Countdown and plan updated.'), 'good');
       updateChrome();
     });
     $('#reset-dates').addEventListener('click', function () {
@@ -787,8 +810,8 @@
 
     // progress
     $('#reset-progress').addEventListener('click', function () {
-      if (confirm('Reset your study progress? Settings (theme, dates) are kept. This cannot be undone.')) {
-        Settings.resetProgress(); settingsMsg('Progress reset.', 'good'); setTimeout(() => location.reload(), 700);
+      if (confirm(tr('Reset your study progress? Settings (theme, dates) are kept. This cannot be undone.'))) {
+        Settings.resetProgress(); settingsMsg(tr('Progress reset.'), 'good'); setTimeout(() => location.reload(), 700);
       }
     });
 
@@ -805,9 +828,9 @@
     searchOpen = true;
     const ov = document.createElement('div');
     ov.className = 'search-overlay'; ov.id = 'search-overlay';
-    ov.innerHTML = '<div class="search-box" role="dialog" aria-label="Search">' +
-      '<input class="search-input" id="search-input" placeholder="Search notes, glossary, topics…" autocomplete="off" aria-label="Search">' +
-      '<div class="search-results" id="search-results"><p class="muted search-hint">Type at least 2 characters. Press Esc to close.</p></div></div>';
+    ov.innerHTML = '<div class="search-box" role="dialog" aria-label="' + esc(tr('Search')) + '">' +
+      '<input class="search-input" id="search-input" placeholder="' + esc(tr('Search notes, glossary, topics…')) + '" autocomplete="off" aria-label="' + esc(tr('Search')) + '">' +
+      '<div class="search-results" id="search-results"><p class="muted search-hint">' + tr('Type at least 2 characters. Press Esc to close.') + '</p></div></div>';
     document.body.appendChild(ov);
     const input = $('#search-input');
     const results = $('#search-results');
@@ -815,12 +838,12 @@
     function renderResults() {
       const list = Search.query(input.value, 12); items = list; active = list.length ? 0 : -1;
       if (!input.value.trim() || input.value.trim().length < 2) {
-        results.innerHTML = '<p class="muted search-hint">Type at least 2 characters. Press Esc to close.</p>'; return;
+        results.innerHTML = '<p class="muted search-hint">' + tr('Type at least 2 characters. Press Esc to close.') + '</p>'; return;
       }
-      if (!list.length) { results.innerHTML = '<p class="muted search-hint">No results for “' + esc(input.value) + '”.</p>'; return; }
+      if (!list.length) { results.innerHTML = '<p class="muted search-hint">' + tr('No results for “{q}”.', { q: esc(input.value) }) + '</p>'; return; }
       results.innerHTML = list.map((r, i) =>
         '<a class="search-result' + (i === 0 ? ' active' : '') + '" data-route="' + esc(r.route) + '" data-i="' + i + '">' +
-        '<span class="sr-type">' + esc(r.type) + '</span><span class="sr-title">' + esc(r.title) + '</span>' +
+        '<span class="sr-type">' + esc(tr(r.type)) + '</span><span class="sr-title">' + esc(r.title) + '</span>' +
         (r.snippet ? '<span class="sr-snip">' + esc(r.snippet) + '</span>' : '') + '</a>').join('');
       $all('.search-result', results).forEach((el) => el.addEventListener('click', function () { goResult(this.getAttribute('data-route')); }));
     }
@@ -850,7 +873,7 @@
     t.id = 'app-toast'; t.className = 'pwa-toast'; t.setAttribute('role', 'status');
     const span = document.createElement('span'); span.textContent = msg; t.appendChild(span);
     const x = document.createElement('button');
-    x.className = 'pwa-toast-x'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '✕';
+    x.className = 'pwa-toast-x'; x.setAttribute('aria-label', tr('Dismiss')); x.textContent = '✕';
     x.addEventListener('click', () => t.remove());
     t.appendChild(x);
     document.body.appendChild(t);
@@ -878,10 +901,10 @@
     menu.innerHTML =
       '<button role="menuitem" data-sess="save">' +
         '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>' +
-        'Save session…</button>' +
+        tr('Save session…') + '</button>' +
       '<button role="menuitem" data-sess="load">' +
         '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
-        'Load session…</button>';
+        tr('Load session…') + '</button>';
     btn.parentNode.appendChild(menu);
     btn.setAttribute('aria-expanded', 'true');
     on('#session-menu [data-sess]', 'click', function () {
@@ -897,15 +920,15 @@
   function doSaveSession() {
     Settings.saveSession().then(function (r) {
       if (!r || r.cancelled) return;
-      if (r.ok) appToast((r.method === 'download' ? 'Session downloaded: ' : 'Session saved: ') + r.name);
-      else appToast('Could not save session' + (r.error ? ': ' + r.error : '.'));
+      if (r.ok) appToast(r.method === 'download' ? tr('Session downloaded: {name}', { name: r.name }) : tr('Session saved: {name}', { name: r.name }));
+      else appToast(r.error ? tr('Could not save session: {error}', { error: r.error }) : tr('Could not save session.'));
     });
   }
   function doLoadSession() {
     Settings.loadSession().then(function (r) {
       if (!r || r.cancelled) return;
-      if (r.ok) { appToast('Loaded session (' + r.count + ' items). Reloading…'); setTimeout(() => location.reload(), 850); }
-      else appToast('Could not load session' + (r.error ? ': ' + r.error : '.'));
+      if (r.ok) { appToast(tr('Loaded session ({count} items). Reloading…', { count: r.count })); setTimeout(() => location.reload(), 850); }
+      else appToast(r.error ? tr('Could not load session: {error}', { error: r.error }) : tr('Could not load session.'));
     });
   }
 
@@ -934,11 +957,11 @@
     const cur = Settings.level();
     const menu = document.createElement('div');
     menu.id = 'level-menu'; menu.className = 'menu menu-wide'; menu.setAttribute('role', 'menu');
-    menu.innerHTML = '<div class="menu-head">Difficulty</div>' + LEVEL_OPTS.map(function (o) {
+    menu.innerHTML = '<div class="menu-head">' + tr('Difficulty') + '</div>' + LEVEL_OPTS.map(function (o) {
       const on = o[0] === cur;
       return '<button role="menuitemradio" aria-checked="' + (on ? 'true' : 'false') + '" data-setlevel="' + o[0] + '" class="' + (on ? 'cur' : '') + '">' +
         '<span class="menu-check" aria-hidden="true">' + (on ? '✓' : '') + '</span>' +
-        '<span class="menu-main"><strong>' + o[1] + '</strong><span class="menu-sub">' + o[2] + '</span></span></button>';
+        '<span class="menu-main"><strong>' + esc(tr(o[1])) + '</strong><span class="menu-sub">' + esc(tr(o[2])) + '</span></span></button>';
     }).join('');
     btn.parentNode.appendChild(menu);
     btn.setAttribute('aria-expanded', 'true');
@@ -948,10 +971,52 @@
       closeLevelMenu();
       Settings.set({ level: v });
       updateChrome(); route();
-      appToast('Difficulty: ' + label);
+      appToast(tr('Difficulty: {label}', { label: label }));
     });
     setTimeout(function () { document.addEventListener('click', outsideLevelClick); }, 0);
     document.addEventListener('keydown', levelMenuKey);
+    const c = menu.querySelector('.cur') || menu.querySelector('button'); if (c) c.focus();
+  }
+
+  /* ================= LANGUAGE MENU ================= */
+  function closeLangMenu() {
+    const m = document.getElementById('lang-menu'); if (m) m.remove();
+    const b = $('#lang-btn'); if (b) b.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', outsideLangClick);
+    document.removeEventListener('keydown', langMenuKey);
+  }
+  function outsideLangClick(e) {
+    const m = document.getElementById('lang-menu'); const b = $('#lang-btn');
+    if (m && !m.contains(e.target) && b && !b.contains(e.target)) closeLangMenu();
+  }
+  function langMenuKey(e) {
+    if (e.key === 'Escape') { closeLangMenu(); const b = $('#lang-btn'); if (b) b.focus(); }
+  }
+  function toggleLangMenu() {
+    if (document.getElementById('lang-menu')) { closeLangMenu(); return; }
+    if (!window.I18n) return;
+    const btn = $('#lang-btn');
+    const cur = Settings.lang();
+    const menu = document.createElement('div');
+    menu.id = 'lang-menu'; menu.className = 'menu menu-wide menu-scroll'; menu.setAttribute('role', 'menu');
+    menu.innerHTML = '<div class="menu-head">' + tr('Language') + '</div>' + I18n.LANGS.map(function (o) {
+      const on = o.code === cur;
+      return '<button role="menuitemradio" aria-checked="' + (on ? 'true' : 'false') + '" data-setlang="' + o.code + '" lang="' + o.code + '" class="' + (on ? 'cur' : '') + '">' +
+        '<span class="menu-check" aria-hidden="true">' + (on ? '✓' : '') + '</span>' +
+        '<span class="menu-main"><strong>' + esc(o.native) + '</strong><span class="menu-sub">' + esc(o.label) + '</span></span></button>';
+    }).join('');
+    btn.parentNode.appendChild(menu);
+    btn.setAttribute('aria-expanded', 'true');
+    on('#lang-menu [data-setlang]', 'click', function () {
+      const code = this.getAttribute('data-setlang');
+      const native = this.querySelector('strong').textContent;
+      closeLangMenu();
+      Settings.set({ lang: code });   // Settings.apply() syncs I18n + <html lang/dir>
+      updateChrome(); route();
+      appToast(tr('Language') + ': ' + native);
+    });
+    setTimeout(function () { document.addEventListener('click', outsideLangClick); }, 0);
+    document.addEventListener('keydown', langMenuKey);
     const c = menu.querySelector('.cur') || menu.querySelector('button'); if (c) c.focus();
   }
 
@@ -980,18 +1045,18 @@
     const asked = Store.get('levelUpAsked', {}); asked[curLevel] = true; Store.set('levelUpAsked', asked);
     const ov = document.createElement('div');
     ov.className = 'search-overlay'; ov.id = 'levelup-overlay';
-    ov.innerHTML = '<div class="search-box onboard-box" role="dialog" aria-label="Level up?">' +
-      '<h2 style="margin:2px 4px 6px">🚀 You\'re on a roll!</h2>' +
-      '<p class="muted" style="margin:0 4px 16px">You\'ve been scoring high on practice and flashcards. Want to step up to <strong>' + esc(nextLabel) + '</strong> — harder questions and type-the-answer flashcards?</p>' +
+    ov.innerHTML = '<div class="search-box onboard-box" role="dialog" aria-label="' + esc(tr('Level up?')) + '">' +
+      '<h2 style="margin:2px 4px 6px">🚀 ' + tr('You\'re on a roll!') + '</h2>' +
+      '<p class="muted" style="margin:0 4px 16px">' + tr('You\'ve been scoring high on practice and flashcards. Want to step up to {label} — harder questions and type-the-answer flashcards?', { label: '<strong>' + esc(tr(nextLabel)) + '</strong>' }) + '</p>' +
       '<div class="btn-row" style="justify-content:flex-end">' +
-        '<button class="btn ghost" data-lvlup="no">Keep current</button>' +
-        '<button class="btn primary" data-lvlup="yes">Yes, level up</button>' +
+        '<button class="btn ghost" data-lvlup="no">' + tr('Keep current') + '</button>' +
+        '<button class="btn primary" data-lvlup="yes">' + tr('Yes, level up') + '</button>' +
       '</div></div>';
     document.body.appendChild(ov);
     on('#levelup-overlay [data-lvlup]', 'click', function () {
       const yes = this.getAttribute('data-lvlup') === 'yes';
       ov.remove();
-      if (yes) { Settings.set({ level: next }); updateChrome(); route(); appToast('Difficulty bumped to ' + nextLabel + ' 💪'); }
+      if (yes) { Settings.set({ level: next }); updateChrome(); route(); appToast(tr('Difficulty bumped to {label} 💪', { label: tr(nextLabel) })); }
     });
     ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.remove(); });
     ov.tabIndex = -1; ov.focus();
@@ -1010,9 +1075,9 @@
       ['?', 'Show this help'],
       ['Esc', 'Close overlay'],
     ];
-    ov.innerHTML = '<div class="search-box" role="dialog" aria-label="Keyboard shortcuts"><h2 style="margin:4px 4px 12px">Keyboard shortcuts</h2>' +
-      '<div class="kbd-list">' + rows.map((r) => '<div class="kbd-row"><kbd>' + esc(r[0]) + '</kbd><span>' + esc(r[1]) + '</span></div>').join('') + '</div>' +
-      '<div class="btn-row mt" style="justify-content:flex-end"><button class="btn sm" data-act="close-ov">Close</button></div></div>';
+    ov.innerHTML = '<div class="search-box" role="dialog" aria-label="' + esc(tr('Keyboard shortcuts')) + '"><h2 style="margin:4px 4px 12px">' + tr('Keyboard shortcuts') + '</h2>' +
+      '<div class="kbd-list">' + rows.map((r) => '<div class="kbd-row"><kbd>' + esc(r[0]) + '</kbd><span>' + esc(tr(r[1])) + '</span></div>').join('') + '</div>' +
+      '<div class="btn-row mt" style="justify-content:flex-end"><button class="btn sm" data-act="close-ov">' + tr('Close') + '</button></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click', function (e) { if (e.target === ov || (e.target.getAttribute && e.target.getAttribute('data-act') === 'close-ov')) ov.remove(); });
     ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.remove(); });
@@ -1117,7 +1182,7 @@
     });
     const passY = y(75).toFixed(1);
     const passLine = '<line x1="' + padL + '" y1="' + passY + '" x2="' + (W - padR) + '" y2="' + passY + '" stroke="#2e9e5a" stroke-width="1.5" stroke-dasharray="5 4"/>' +
-      '<text x="' + (W - padR) + '" y="' + (y(75) - 5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#2e9e5a">pass 75%</text>';
+      '<text x="' + (W - padR) + '" y="' + (y(75) - 5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#2e9e5a">' + esc(tr('pass {pct}%', { pct: 75 })) + '</text>';
     const pts = data.map((m, i) => x(i).toFixed(1) + ',' + y(m.pct).toFixed(1)).join(' ');
     const line = n >= 2 ? '<polyline points="' + pts + '" fill="none" stroke="#7855fa" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' : '';
     let dots = '';
@@ -1129,7 +1194,7 @@
     const dlabel = (i, anchor) => { const dt = new Date(data[i].date); return '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + anchor + '" font-size="10" fill="#9a9a9a">' + (dt.getMonth() + 1) + '/' + dt.getDate() + '</text>'; };
     let xlabels = dlabel(0, n === 1 ? 'middle' : 'start');
     if (n > 1) xlabels += dlabel(n - 1, 'end');
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Mock exam scores over time" style="display:block;max-width:100%;margin:0 0 14px;font-family:inherit">' +
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + esc(tr('Mock exam scores over time')) + '" style="display:block;max-width:100%;margin:0 0 14px;font-family:inherit">' +
       grid + passLine + line + dots + xlabels + '</svg>';
   }
 
@@ -1161,17 +1226,18 @@
 
   function reportNarrative(r, days) {
     if (r.totalAnswered < 20) {
-      return { verdict: 'Getting started', text: 'Baseline assessment is in progress. A reliable readiness estimate will firm up after the diagnostic and a bit more practice.' };
+      return { verdict: tr('Getting started'), text: tr('Baseline assessment is in progress. A reliable readiness estimate will firm up after the diagnostic and a bit more practice.') };
     }
     const margin = r.predictedScore - r.passPct;
-    const verdict = r.likelihood === 'High' ? 'On track to pass'
-      : r.likelihood === 'Moderate' ? 'On pace'
-      : r.likelihood === 'Building' ? 'Building toward readiness'
-      : 'Early progress';
-    const text = 'Current readiness is ' + r.readiness + '% with a predicted exam score of ~' + r.predictedScore +
-      '% against a ' + r.passPct + '% pass mark — ' +
-      (margin >= 0 ? margin + ' point' + (margin === 1 ? '' : 's') + ' above' : Math.abs(margin) + ' point' + (Math.abs(margin) === 1 ? '' : 's') + ' below') +
-      ' the line, with ' + days + ' day' + (days === 1 ? '' : 's') + ' before the deadline.';
+    const verdict = r.likelihood === 'High' ? tr('On track to pass')
+      : r.likelihood === 'Moderate' ? tr('On pace')
+      : r.likelihood === 'Building' ? tr('Building toward readiness')
+      : tr('Early progress');
+    const marginText = margin >= 0
+      ? tr('{n} points above the line', { n: margin })
+      : tr('{n} points below the line', { n: Math.abs(margin) });
+    const text = tr('Current readiness is {readiness}% with a predicted exam score of ~{predicted}% against a {pass}% pass mark — {margin}, with {days} days before the deadline.',
+      { readiness: r.readiness, predicted: r.predictedScore, pass: r.passPct, margin: marginText, days: days });
     return { verdict, text };
   }
 
@@ -1183,82 +1249,84 @@
     const domainRows = d.r.perDomain.map((dm) => {
       const has = dm.answered > 0;
       return '<tr><td>' + esc(dm.name) + '</td><td class="rp-num">' + dm.weight + '%</td>' +
-        '<td>' + (has ? rpBar(dm.masteryPct) + dm.masteryPct + '%' : '<span class="rp-pill muted">not started</span>') + '</td>' +
+        '<td>' + (has ? rpBar(dm.masteryPct) + dm.masteryPct + '%' : '<span class="rp-pill muted">' + tr('not started') + '</span>') + '</td>' +
         '<td class="rp-num">' + dm.answered + '</td></tr>';
     }).join('');
 
     const mockRows = d.mocks.slice(0, 6).map((m) => {
       const dt = new Date(m.date);
       return '<tr><td>' + dt.toLocaleDateString() + '</td><td class="rp-num">' + m.pct + '%</td>' +
-        '<td><span class="rp-pill ' + (m.passed ? 'good' : 'warn') + '">' + (m.passed ? 'Pass' : 'Below pass') + '</span></td></tr>';
+        '<td><span class="rp-pill ' + (m.passed ? 'good' : 'warn') + '">' + (m.passed ? tr('Pass') : tr('Below pass')) + '</span></td></tr>';
     }).join('');
 
     return '<div class="rp-doc" id="rp-doc">' +
-      '<div class="rp-brand"><div class="rp-mark">K</div><div><h1 class="rp-title">KCNA Certification — Progress Report</h1>' +
-        '<p class="rp-sub">Kubernetes &amp; Cloud Native Associate · prepared with KCNA Prep</p></div></div>' +
+      '<div class="rp-brand"><div class="rp-mark">K</div><div><h1 class="rp-title">' + tr('KCNA Certification — Progress Report') + '</h1>' +
+        '<p class="rp-sub">Kubernetes &amp; Cloud Native Associate · ' + tr('prepared with KCNA Prep') + '</p></div></div>' +
       '<div class="rp-meta">' +
-        '<span>Prepared by <b id="rp-prepared">' + (d.name ? esc(d.name) : '—') + '</b></span>' +
-        '<span>Generated <b>' + esc(d.dateStr) + '</b></span>' +
-        '<span>Target <b>pass by ' + esc(d.cd.examLabel) + '</b></span>' +
-        '<span><b>' + d.cd.days + '</b> days remaining</span>' +
-        '<span>Exam <b id="rp-booked-val">' + (d.booked ? 'scheduled for ' + esc(d.booked) : 'not yet scheduled') + '</b></span>' +
+        '<span>' + tr('Prepared by {name}', { name: '<b id="rp-prepared">' + (d.name ? esc(d.name) : '—') + '</b>' }) + '</span>' +
+        '<span>' + tr('Generated {date}', { date: '<b>' + esc(d.dateStr) + '</b>' }) + '</span>' +
+        '<span>' + tr('Target <b>pass by {date}</b>', { date: esc(d.cd.examLabel) }) + '</span>' +
+        '<span>' + tr('{days} days remaining', { days: '<b>' + d.cd.days + '</b>' }) + '</span>' +
+        '<span>' + tr('Exam {status}', { status: '<b id="rp-booked-val">' + (d.booked ? tr('scheduled for {date}', { date: esc(d.booked) }) : tr('not yet scheduled')) + '</b>' }) + '</span>' +
       '</div>' +
       '<div class="rp-callout"><span class="rp-verdict">' + esc(d.narrative.verdict) + '</span>' + esc(d.narrative.text) + '</div>' +
 
-      '<div class="rp-section"><h2>Readiness</h2><div class="rp-grid">' +
-        stat(d.r.readiness + '%', 'Overall readiness') +
-        stat(assessed ? '~' + d.r.predictedScore + '%' : '—', 'Predicted exam score') +
-        stat('<span class="rp-pill ' + likeCls + '">' + esc(d.r.likelihood) + '</span>', 'Pass likelihood') +
-        stat(esc(d.level), 'Study track') +
+      '<div class="rp-section"><h2>' + tr('Readiness') + '</h2><div class="rp-grid">' +
+        stat(d.r.readiness + '%', tr('Overall readiness')) +
+        stat(assessed ? '~' + d.r.predictedScore + '%' : '—', tr('Predicted exam score')) +
+        stat('<span class="rp-pill ' + likeCls + '">' + esc(tr(d.r.likelihood)) + '</span>', tr('Pass likelihood')) +
+        stat(esc(tr(d.level)), tr('Study track')) +
       '</div></div>' +
 
-      '<div class="rp-section"><h2>Study activity</h2><div class="rp-grid">' +
-        stat(d.answered, 'Questions answered') +
-        stat(d.answered ? d.practiceAcc + '%' : '—', 'Practice accuracy') +
-        stat(d.bestMock ? d.bestMock + '%' : '—', 'Best mock score') +
-        stat(d.mocks.length, 'Mock exams taken') +
-        stat(d.fc.mastered + ' / ' + d.fc.total, 'Flashcards mastered') +
-        stat(d.streak.current + (d.streak.current === 1 ? ' day' : ' days'), 'Current study streak') +
-        stat(d.plan.doneTasks + ' / ' + d.plan.totalTasks, 'Study-plan tasks done') +
+      '<div class="rp-section"><h2>' + tr('Study activity') + '</h2><div class="rp-grid">' +
+        stat(d.answered, tr('Questions answered')) +
+        stat(d.answered ? d.practiceAcc + '%' : '—', tr('Practice accuracy')) +
+        stat(d.bestMock ? d.bestMock + '%' : '—', tr('Best mock score')) +
+        stat(d.mocks.length, tr('Mock exams taken')) +
+        stat(d.fc.mastered + ' / ' + d.fc.total, tr('Flashcards mastered')) +
+        stat(tr('{n} days', { n: d.streak.current }), tr('Current study streak')) +
+        stat(d.plan.doneTasks + ' / ' + d.plan.totalTasks, tr('Study-plan tasks done')) +
       '</div></div>' +
 
-      '<div class="rp-section"><h2>Domain mastery (by exam weight)</h2><table class="rp-table">' +
-        '<thead><tr><th>Domain</th><th class="rp-num">Weight</th><th>Mastery</th><th class="rp-num">Answered</th></tr></thead>' +
+      '<div class="rp-section"><h2>' + tr('Domain mastery (by exam weight)') + '</h2><table class="rp-table">' +
+        '<thead><tr><th>' + tr('Domain') + '</th><th class="rp-num">' + tr('Weight') + '</th><th>' + tr('Mastery') + '</th><th class="rp-num">' + tr('Answered') + '</th></tr></thead>' +
         '<tbody>' + domainRows + '</tbody></table></div>' +
 
-      (d.mocks.length ? '<div class="rp-section"><h2>Mock exam scores over time</h2>' + rpMockChart(d.mocks) +
-        '<table class="rp-table"><thead><tr><th>Date</th><th class="rp-num">Score</th><th>Result</th></tr></thead><tbody>' + mockRows + '</tbody></table></div>' : '') +
+      (d.mocks.length ? '<div class="rp-section"><h2>' + tr('Mock exam scores over time') + '</h2>' + rpMockChart(d.mocks) +
+        '<table class="rp-table"><thead><tr><th>' + tr('Date') + '</th><th class="rp-num">' + tr('Score') + '</th><th>' + tr('Result') + '</th></tr></thead><tbody>' + mockRows + '</tbody></table></div>' : '') +
 
-      '<div class="rp-foot">Generated by KCNA Prep — an independent study app. Progress reflects in-app practice and is self-reported; it is not affiliated with or endorsed by the CNCF, the Linux Foundation, or Nutanix.</div>' +
+      '<div class="rp-foot">' + tr('Generated by KCNA Prep — an independent study app. Progress reflects in-app practice and is self-reported; it is not affiliated with or endorsed by the CNCF, the Linux Foundation, or Nutanix.') + '</div>' +
       '</div>';
   }
 
   function buildReportText(d) {
     const lines = [];
-    lines.push('KCNA Certification — Progress Report' + (d.name ? ' — ' + d.name : ''));
-    lines.push('Generated ' + d.dateStr);
-    lines.push('Target: pass by ' + d.cd.examLabel + ' (' + d.cd.days + ' days remaining)');
-    lines.push('Exam: ' + (d.booked ? 'scheduled for ' + d.booked : 'not yet scheduled'));
+    lines.push(tr('KCNA Certification — Progress Report') + (d.name ? ' — ' + d.name : ''));
+    lines.push(tr('Generated {date}', { date: d.dateStr }));
+    lines.push(tr('Target: pass by {date} ({days} days remaining)', { date: d.cd.examLabel, days: d.cd.days }));
+    lines.push(tr('Exam: {status}', { status: d.booked ? tr('scheduled for {date}', { date: d.booked }) : tr('not yet scheduled') }));
     lines.push('');
     lines.push(d.narrative.verdict + '. ' + d.narrative.text);
     lines.push('');
-    lines.push('Readiness: ' + d.r.readiness + '%  |  Predicted score: ' + (d.r.totalAnswered >= 20 ? '~' + d.r.predictedScore + '%' : 'n/a') + '  |  Pass likelihood: ' + d.r.likelihood);
-    lines.push('Questions answered: ' + d.answered + (d.answered ? ' (' + d.practiceAcc + '% correct)' : ''));
-    lines.push('Best mock score: ' + (d.bestMock ? d.bestMock + '%' : 'n/a') + ' across ' + d.mocks.length + ' mock exam(s)');
-    lines.push('Flashcards mastered: ' + d.fc.mastered + ' / ' + d.fc.total + '  |  Study streak: ' + d.streak.current + ' days');
-    lines.push('Study plan: ' + d.plan.doneTasks + ' / ' + d.plan.totalTasks + ' tasks done');
+    lines.push(tr('Readiness: {readiness}%  |  Predicted score: {predicted}  |  Pass likelihood: {likelihood}', { readiness: d.r.readiness, predicted: (d.r.totalAnswered >= 20 ? '~' + d.r.predictedScore + '%' : tr('n/a')), likelihood: tr(d.r.likelihood) }));
+    lines.push(tr('Questions answered: {n}', { n: d.answered }) + (d.answered ? ' ' + tr('({pct}% correct)', { pct: d.practiceAcc }) : ''));
+    lines.push(tr('Best mock score: {score} across {n} mock exams', { score: (d.bestMock ? d.bestMock + '%' : tr('n/a')), n: d.mocks.length }));
+    lines.push(tr('Flashcards mastered: {mastered} / {total}  |  Study streak: {days} days', { mastered: d.fc.mastered, total: d.fc.total, days: d.streak.current }));
+    lines.push(tr('Study plan: {done} / {total} tasks done', { done: d.plan.doneTasks, total: d.plan.totalTasks }));
     lines.push('');
-    lines.push('Domain mastery (by exam weight):');
+    lines.push(tr('Domain mastery (by exam weight):'));
     d.r.perDomain.forEach((dm) => {
-      lines.push('  - ' + dm.name + ' (' + dm.weight + '%): ' + (dm.answered ? dm.masteryPct + '%' : 'not started'));
+      lines.push('  - ' + dm.name + ' (' + dm.weight + '%): ' + (dm.answered ? dm.masteryPct + '%' : tr('not started')));
     });
     return lines.join('\n');
   }
 
   function buildStandaloneHtml(d) {
-    return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+    const lc = window.I18n ? I18n.active() : 'en';
+    const dir = window.I18n ? I18n.dirFor(lc) : 'ltr';
+    return '<!DOCTYPE html><html lang="' + lc + '" dir="' + dir + '"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>KCNA Progress Report' + (d.name ? ' — ' + esc(d.name) : '') + '</title>' +
+      '<title>' + esc(tr('KCNA Progress Report')) + (d.name ? ' — ' + esc(d.name) : '') + '</title>' +
       '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
       '<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">' +
       '<style>body{margin:0;background:#eceef3;padding:24px}' + REPORT_CSS +
@@ -1281,15 +1349,15 @@
   function viewReport() {
     if (!KCNA.ready()) return render(notReady());
     const d = gatherReportData();
-    render('<div class="page-head no-print"><h1>Progress report</h1><p>A clean summary for your manager — print it, download it to email, or copy a text version.</p></div>' +
+    render('<div class="page-head no-print"><h1>' + tr('Progress report') + '</h1><p>' + tr('A clean summary for your manager — print it, download it to email, or copy a text version.') + '</p></div>' +
       '<style>' + REPORT_CSS + '</style>' +
       '<div class="card rp-controls no-print"><div class="rp-fields">' +
-        '<label class="rp-field"><span>Prepared by</span><input id="rp-name" class="fc-input" placeholder="Your name" autocomplete="name" value="' + esc(d.name) + '"></label>' +
-        '<label class="rp-field"><span>Exam scheduled for (optional)</span><input id="rp-booked" type="date" class="fc-input" value="' + esc(d.booked || '') + '"></label>' +
+        '<label class="rp-field"><span>' + tr('Prepared by') + '</span><input id="rp-name" class="fc-input" placeholder="' + esc(tr('Your name')) + '" autocomplete="name" value="' + esc(d.name) + '"></label>' +
+        '<label class="rp-field"><span>' + tr('Exam scheduled for (optional)') + '</span><input id="rp-booked" type="date" class="fc-input" value="' + esc(d.booked || '') + '"></label>' +
       '</div>' +
-      '<div class="btn-row mt"><button class="btn primary" id="rp-print">🖨️ Print / Save as PDF</button>' +
-        '<button class="btn" id="rp-download">⬇️ Download (.html)</button>' +
-        '<button class="btn" id="rp-copy">📋 Copy summary</button></div>' +
+      '<div class="btn-row mt"><button class="btn primary" id="rp-print">🖨️ ' + tr('Print / Save as PDF') + '</button>' +
+        '<button class="btn" id="rp-download">⬇️ ' + tr('Download (.html)') + '</button>' +
+        '<button class="btn" id="rp-copy">📋 ' + tr('Copy summary') + '</button></div>' +
       '<div id="rp-msg" class="mt" aria-live="polite"></div></div>' +
       buildReportDoc(d));
 
@@ -1304,14 +1372,14 @@
       a.href = url; a.download = reportFilename(data.name);
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      rpMsg('Report downloaded.');
+      rpMsg(tr('Report downloaded.'));
     });
     $('#rp-copy').addEventListener('click', function () {
       const text = buildReportText(gatherReportData());
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () { rpMsg('Summary copied to clipboard.'); },
-          function () { rpMsg('Copy failed — select the downloaded file instead.'); });
-      } else { rpMsg('Clipboard not available — use Download instead.'); }
+        navigator.clipboard.writeText(text).then(function () { rpMsg(tr('Summary copied to clipboard.')); },
+          function () { rpMsg(tr('Copy failed — select the downloaded file instead.')); });
+      } else { rpMsg(tr('Clipboard not available — use Download instead.')); }
     });
   }
 
@@ -1346,7 +1414,7 @@
     }
     // Move focus to main and announce the route for assistive tech.
     try { appEl.focus({ preventScroll: true }); } catch (e) { appEl.focus(); }
-    announce((ROUTE_TITLES[top] || 'Page') + ' loaded');
+    announce(tr('{page} loaded', { page: tr(ROUTE_TITLES[top] || 'Page') }));
   }
 
   function toggleNav(open) {
@@ -1361,6 +1429,7 @@
   $('#search-btn').addEventListener('click', openSearch);
   $('#session-btn').addEventListener('click', toggleSessionMenu);
   $('#level-btn').addEventListener('click', toggleLevelMenu);
+  const langBtn = $('#lang-btn'); if (langBtn) langBtn.addEventListener('click', toggleLangMenu);
   appEl.addEventListener('click', function (e) {
     const t = e.target.closest && e.target.closest('[data-act="reload"]');
     if (t) location.reload();

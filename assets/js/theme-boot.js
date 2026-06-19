@@ -11,5 +11,11 @@
     if ((s.reducedMotion || 'auto') === 'on') {
       document.documentElement.classList.add('reduce-motion');
     }
+    // Set language direction before first paint so RTL (Arabic) doesn't flash
+    // left-to-right. The full I18n module applies text translation shortly after.
+    if (s.lang) {
+      document.documentElement.setAttribute('lang', s.lang);
+      document.documentElement.setAttribute('dir', s.lang === 'ar' ? 'rtl' : 'ltr');
+    }
   } catch (e) { /* default dark theme applies */ }
 })();
