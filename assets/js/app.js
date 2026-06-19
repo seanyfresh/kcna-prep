@@ -1424,22 +1424,52 @@
       '</div>' + (v ? '<p class="muted mt" style="font-size:13px;margin-bottom:0">' + tr('Version {v}', { v: esc(v) }) + '</p>' : '') + '</div>');
   }
 
+  // Names, roles, companies and bios are biographical content and stay in the
+  // contributor's own language (English); the page chrome around them is localized.
   const CONTRIBUTORS = [
-    { name: 'Sean (seanyfresh)', role: 'Creator & maintainer', note: 'Built and maintains KCNA Prep.' },
-    { name: 'Michael Gaspard', role: 'Security review', note: 'Prompted the CSRF / SSRF / XSS audit that hardened the app.' },
-    { name: 'Ross Davies', role: 'UX & product feedback', note: 'Proposed the top-bar difficulty indicator and dropping the unused Offline pill.' },
+    {
+      name: 'Sean Keenan', role: 'Systems Engineering Manager', company: 'Nutanix',
+      linkedin: 'https://www.linkedin.com/in/seanyfresh/',
+      bio: 'Sean came up keeping mission-critical systems running in the Air National Guard, then spent years designing and operating hyper-converged infrastructure before moving into leadership. Today he leads a systems engineering team at Nutanix, where the job is less about being at the keyboard and more about clearing the path for the people who are. He built and maintains KCNA Prep.',
+    },
+    {
+      name: 'Michael Gaspard', role: 'Sr Presales Systems Engineer', company: 'Nutanix',
+      linkedin: 'https://www.linkedin.com/in/michael-gaspard/',
+      bio: 'Michael is a Senior Presales Systems Engineer at Nutanix. With over 20 years in enterprise IT — spanning roles as CTO, IT Director, Enterprise Architect, and Principal Solutions Architect — he brings a full-stack perspective, having lived the infrastructure problem from every angle. His core expertise spans virtualization platform migration, large-scale datacenter transformation, and infrastructure modernization, and he is a Nutanix Certified Professional (NCP-MCI 6). On KCNA Prep, Michael prompted the CSRF / SSRF / XSS security review that hardened the app.',
+    },
+    {
+      name: 'Ross Davies', role: 'Advisory Systems Engineer', company: 'Nutanix',
+      linkedin: 'https://www.linkedin.com/in/grdavies/',
+      bio: 'Ross is an Advisory Systems Engineer at Nutanix in Phoenix, Arizona, with deep experience across virtualization, storage, and cloud infrastructure and a particular focus on the Nutanix Kubernetes Platform, which he actively champions with customers. On KCNA Prep, his product instincts shaped the experience: he proposed surfacing the difficulty level in the top bar and dropping the unused Offline pill, after breezing through a session and noting it was too easy.',
+    },
   ];
+  const LINKEDIN_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
+    '<rect width="24" height="24" rx="4" fill="#0a66c2"/>' +
+    '<path fill="#fff" d="M8.34 18.34V9.6H5.45v8.74h2.89zM6.9 8.4a1.68 1.68 0 1 0 0-3.36 1.68 1.68 0 0 0 0 3.36zm11.44 9.94v-4.79c0-2.56-1.37-3.75-3.19-3.75a2.76 2.76 0 0 0-2.5 1.37h-.04V9.6H9.72c.04.82 0 8.74 0 8.74h2.89v-4.87c0-.26.02-.52.09-.7.21-.51.68-1.05 1.48-1.05 1.05 0 1.47.8 1.47 1.97v4.65h2.89z"/></svg>';
+
   function viewContributors() {
     const cards = CONTRIBUTORS.map(function (c) {
       const initial = esc((c.name.trim().charAt(0) || '?').toUpperCase());
-      return '<div class="contrib"><div class="contrib-avatar" aria-hidden="true">' + initial + '</div>' +
-        '<div><div class="contrib-name">' + esc(c.name) + '</div>' +
-        '<div class="contrib-role">' + esc(tr(c.role)) + '</div>' +
-        '<div class="muted" style="font-size:13px">' + esc(tr(c.note)) + '</div></div></div>';
+      const roleLine = esc(c.role) + (c.company ? ' · ' + esc(c.company) : '');
+      const nameHtml = c.linkedin
+        ? '<a class="contrib-name-link" href="' + esc(safeUrl(c.linkedin)) + '" target="_blank" rel="noopener noreferrer">' + esc(c.name) + '</a>'
+        : esc(c.name);
+      const badge = c.linkedin
+        ? '<a class="contrib-li" href="' + esc(safeUrl(c.linkedin)) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(c.name) + ' ' + esc(tr('on LinkedIn')) + '">' + LINKEDIN_SVG + '</a>'
+        : '';
+      return '<div class="contrib-card">' +
+        '<div class="contrib-head">' +
+          '<div class="contrib-avatar" aria-hidden="true">' + initial + '</div>' +
+          '<div class="contrib-id"><div class="contrib-name">' + nameHtml + '</div>' +
+          '<div class="contrib-role">' + roleLine + '</div></div>' +
+          badge +
+        '</div>' +
+        '<p class="contrib-bio">' + esc(c.bio) + '</p>' +
+        '</div>';
     }).join('');
     render('<div class="page-head"><h1>' + tr('Contributors') + '</h1><p>' + tr('KCNA Prep is built in the open. Thanks to everyone who has helped make it better.') + '</p></div>' +
-      '<div class="card"><div class="contrib-grid">' + cards + '</div>' +
-        '<p class="muted mt" style="font-size:13px;margin-bottom:0">' + tr('See the full commit history on {link}.', { link: '<a href="' + REPO_URL + '/graphs/contributors" target="_blank" rel="noopener noreferrer">' + tr('GitHub ↗') + '</a>' }) + '</p></div>');
+      '<div class="contrib-list">' + cards + '</div>' +
+      '<div class="card mt"><p class="muted" style="font-size:13px;margin:0">' + tr('See the full commit history on {link}.', { link: '<a href="' + REPO_URL + '/graphs/contributors" target="_blank" rel="noopener noreferrer">' + tr('GitHub ↗') + '</a>' }) + '</p></div>');
   }
 
   /* ---- minimal, escape-first Markdown renderer for the bundled .md files ---- */

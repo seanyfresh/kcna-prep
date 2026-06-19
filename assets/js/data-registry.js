@@ -5,7 +5,7 @@ window.KCNA = (function () {
   const glossaryTerms = [];        // [{term,definition,domain,sourceUrl}]
 
   const meta = {
-    version: '1.8.0',
+    version: '1.8.1',
     examName: 'KCNA',
     examFull: 'Kubernetes and Cloud Native Associate',
     passPct: 75,        // CNCF passing score

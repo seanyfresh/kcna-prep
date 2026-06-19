@@ -2,6 +2,15 @@
 
 All notable changes to **KCNA Prep** are documented here.
 
+## [1.8.1] - 2026-06-18
+
+### Changed
+- **Contributors page** now uses LinkedIn-style cards — avatar, name, role, a
+  link to each person's LinkedIn, and a short bio — with refreshed entries for
+  Sean Keenan, Michael Gaspard, and Ross Davies.
+
+> 🙏 *Why: the people behind the app deserve more than a one-line credit.*
+
 ## [1.8.0] - 2026-06-18
 
 ### Added
