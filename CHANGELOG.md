@@ -2,6 +2,26 @@
 
 All notable changes to **KCNA Prep** are documented here.
 
+## [1.8.0] - 2026-06-18
+
+### Added
+- **Multi-language interface** — a new 🌐 language menu in the top bar (and a
+  matching picker in **Settings**) translates the whole app UI into **10
+  languages**: English, Español, Português, Français, Deutsch, Italiano,
+  简体中文, 日本語, हिन्दी, and العربية. Your choice is saved per device, and the
+  app auto-detects your browser's language on first visit.
+- **Right-to-left layout** for Arabic — the interface mirrors correctly (menus,
+  nav, lists, and panels).
+
+### Notes
+- Study **content stays in English** — notes, flashcards, and exam questions —
+  because the KCNA exam is administered in English. Localizing the interface
+  keeps the app approachable while you still practice the real exam terminology
+  (Pod, Deployment, Ingress…), which is intentionally kept in English everywhere.
+
+> 🌍 *Why: a study tool shouldn't gatekeep on language. Now teammates across the
+> Americas can navigate in their own — and still meet the exam on its terms.*
+
 ## [1.7.0] - 2026-06-18
 
 ### Added

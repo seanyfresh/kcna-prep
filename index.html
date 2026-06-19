@@ -20,7 +20,7 @@
   <script src="assets/js/theme-boot.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#app">Skip to main content</a>
+  <a class="skip-link" href="#app" data-i18n="Skip to main content">Skip to main content</a>
   <div id="app-root">
     <header class="topbar">
       <div class="brand">
@@ -31,23 +31,32 @@
         </div>
       </div>
       <nav class="mainnav" id="mainnav" aria-label="Primary">
-        <a href="#/dashboard" data-route="dashboard">Dashboard</a>
-        <a href="#/learn" data-route="learn">Learn</a>
-        <a href="#/cards" data-route="cards">Flashcards</a>
-        <a href="#/practice" data-route="practice">Practice</a>
-        <a href="#/readiness" data-route="readiness">Readiness</a>
-        <a href="#/plan" data-route="plan">Plan</a>
-        <a href="#/reference" data-route="reference">Reference</a>
+        <a href="#/dashboard" data-route="dashboard" data-i18n="Dashboard">Dashboard</a>
+        <a href="#/learn" data-route="learn" data-i18n="Learn">Learn</a>
+        <a href="#/cards" data-route="cards" data-i18n="Flashcards">Flashcards</a>
+        <a href="#/practice" data-route="practice" data-i18n="Practice">Practice</a>
+        <a href="#/readiness" data-route="readiness" data-i18n="Readiness">Readiness</a>
+        <a href="#/plan" data-route="plan" data-i18n="Plan">Plan</a>
+        <a href="#/reference" data-route="reference" data-i18n="Reference">Reference</a>
       </nav>
       <div class="topbar-actions">
         <span class="menu-wrap">
-          <button class="icon-btn level-btn" id="level-btn" aria-label="Difficulty level" title="Difficulty" aria-haspopup="menu" aria-expanded="false">
-            <span class="level-pre">Difficulty:</span>
+          <button class="icon-btn" id="lang-btn" aria-label="Language" title="Language" data-i18n-attr="aria-label:Language; title:Language" aria-haspopup="menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3 12h18"/>
+              <path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>
+            </svg>
+          </button>
+        </span>
+        <span class="menu-wrap">
+          <button class="icon-btn level-btn" id="level-btn" aria-label="Difficulty level" title="Difficulty" data-i18n-attr="aria-label:Difficulty level; title:Difficulty" aria-haspopup="menu" aria-expanded="false">
+            <span class="level-pre" data-i18n="Difficulty:">Difficulty:</span>
             <span id="level-label" class="level-label">…</span>
           </button>
         </span>
         <span class="menu-wrap">
-          <button class="icon-btn" id="session-btn" aria-label="Save or load session" title="Save / load session" aria-haspopup="menu" aria-expanded="false">
+          <button class="icon-btn" id="session-btn" aria-label="Save or load session" title="Save / load session" data-i18n-attr="aria-label:Save or load session; title:Save / load session" aria-haspopup="menu" aria-expanded="false">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
               <polyline points="17 21 17 13 7 13 7 21"/>
@@ -55,9 +64,9 @@
             </svg>
           </button>
         </span>
-        <button class="icon-btn" id="search-btn" aria-label="Search (Ctrl or Cmd + K)" title="Search  ⌘K">🔍</button>
-        <a class="icon-btn" href="#/settings" id="settings-btn" aria-label="Settings" title="Settings">⚙️</a>
-        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+        <button class="icon-btn" id="search-btn" aria-label="Search (Ctrl or Cmd + K)" title="Search  ⌘K" data-i18n-attr="aria-label:Search (Ctrl or Cmd + K); title:Search  ⌘K">🔍</button>
+        <a class="icon-btn" href="#/settings" id="settings-btn" aria-label="Settings" title="Settings" data-i18n-attr="aria-label:Settings; title:Settings">⚙️</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" data-i18n-attr="aria-label:Menu">☰</button>
       </div>
     </header>
 
@@ -67,10 +76,10 @@
     <footer class="appfoot">
       <span>KCNA Prep · Kubernetes &amp; Cloud Native Associate</span>
       <nav class="foot-links" aria-label="About and project links">
-        <a href="#/about">About</a>
+        <a href="#/about" data-i18n="About">About</a>
         <a href="#/readme">README</a>
-        <a href="#/contributors">Contributors</a>
-        <a href="#/changelog">Changelog</a>
+        <a href="#/contributors" data-i18n="Contributors">Contributors</a>
+        <a href="#/changelog" data-i18n="Changelog">Changelog</a>
       </nav>
       <span id="foot-stats"></span>
     </footer>
@@ -91,6 +100,19 @@
 
   <!-- App logic -->
   <script src="assets/js/storage.js"></script>
+
+  <!-- i18n engine + language packs (English is the in-code source language) -->
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/i18n/es.js"></script>
+  <script src="assets/js/i18n/pt.js"></script>
+  <script src="assets/js/i18n/fr.js"></script>
+  <script src="assets/js/i18n/de.js"></script>
+  <script src="assets/js/i18n/it.js"></script>
+  <script src="assets/js/i18n/zh.js"></script>
+  <script src="assets/js/i18n/ja.js"></script>
+  <script src="assets/js/i18n/hi.js"></script>
+  <script src="assets/js/i18n/ar.js"></script>
+
   <script src="assets/js/settings.js"></script>
   <script src="assets/js/study-plan.js"></script>
   <script src="assets/js/readiness.js"></script>
