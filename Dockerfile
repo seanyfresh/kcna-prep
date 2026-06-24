@@ -7,7 +7,7 @@
 #
 # Pin to a digest in production for reproducibility; Dependabot keeps it fresh.
 # The "unprivileged" image runs as a non-root user on port 8080 out of the box.
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 
 LABEL org.opencontainers.image.title="KCNA Prep" \
       org.opencontainers.image.description="Offline-capable KCNA exam study app" \
