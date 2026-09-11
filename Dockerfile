@@ -18,7 +18,8 @@ LABEL org.opencontainers.image.title="KCNA Prep" \
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # App content.
-COPY index.html manifest.webmanifest service-worker.js /usr/share/nginx/html/
+# README.md and CHANGELOG.md are fetched at runtime by the in-app Readme/Changelog pages.
+COPY index.html manifest.webmanifest service-worker.js README.md CHANGELOG.md /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 COPY data/   /usr/share/nginx/html/data/
 
