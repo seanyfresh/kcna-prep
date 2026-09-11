@@ -71,6 +71,8 @@ rendered as a *source* link beside the explanation.
 
 ### Holdout split
 
+See [ADR-0001](adr/0001-mock-exam-holdout-split.md) for why.
+
 Questions flagged `holdout: true` are reserved for the full mock exam; practice and the
 diagnostic never serve them, so a mock score is not a recall test of material the app
 already handed the user the answer to. Callers must select through

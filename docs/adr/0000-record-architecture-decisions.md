@@ -50,3 +50,4 @@ index below must be kept current.
 | ADR | Title | Status |
 |---|---|---|
 | [0000](0000-record-architecture-decisions.md) | Record Architecture Decisions | Accepted |
+| [0001](0001-mock-exam-holdout-split.md) | Reserve a mock-only question holdout | Accepted |

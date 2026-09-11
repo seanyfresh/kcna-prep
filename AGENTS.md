@@ -36,6 +36,7 @@ Offline-capable study app for the **Kubernetes & Cloud Native Associate (KCNA)**
   serve it. Select via `KCNA.practiceQuestions()` / `KCNA.mockQuestions()`, never by reading
   `domain.questions` directly — `allQuestions()` spans both pools and is for counting/search only.
   Keep roughly half of each domain on the holdout side so the mock gets two clean sittings.
+  Rationale and sizing: [ADR-0001](docs/adr/0001-mock-exam-holdout-split.md).
 - Keep CI green (GitHub Actions: CI, CodeQL, Pages) — run `make lint` locally first.
 - Conventional Commits.
 - Architecturally-significant decisions get an ADR in `docs/adr/` (Nygard; number-at-commit, placeholder→promote — see `docs/adr/0000-record-architecture-decisions.md`).
