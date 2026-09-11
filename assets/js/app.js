@@ -497,7 +497,7 @@
       '<div class="qprogress" style="margin-bottom:16px">' + bar(Math.round(sIdx / total * 100)) + '<div class="faint mt" style="font-size:12.5px">' + tr('Question {n} of {total}', { n: sIdx + 1, total: total }) + '</div></div>' +
       '<div class="card pad-lg"><div class="qtext">' + esc(q.question) + '</div>' +
         '<div class="options" id="opts">' + opts + '</div>' +
-        (showFeedback ? '<div class="explain"><div class="lbl">' + (answered === q.correctIndex ? '✓ ' + tr('Correct') : '✗ ' + tr('Incorrect — answer: {letter}', { letter: letter(q.correctIndex) })) + '</div><div class="mt" style="margin-top:6px">' + esc(q.explanation) + '</div></div>' : '') +
+        (showFeedback ? '<div class="explain"><div class="lbl">' + (answered === q.correctIndex ? '✓ ' + tr('Correct') : '✗ ' + tr('Incorrect — answer: {letter}', { letter: letter(q.correctIndex) })) + '</div><div class="mt" style="margin-top:6px">' + esc(q.explanation) + '</div>' + srcLink(q.sourceUrl) + '</div>' : '') +
       '</div>' +
       '<div class="quiz-nav">' +
         (sIdx > 0 ? '<button class="btn" id="prev">' + tr('‹ Previous') + '</button>' : '<span></span>') +
@@ -551,7 +551,7 @@
         '<div><div class="faint" style="font-size:12px">' + esc(q.domainName) + ' · ' + esc(q.topic || '') + '</div>' +
         '<strong>' + (i + 1) + '. ' + esc(q.question) + '</strong></div></div>' +
         '<div class="options mt">' + opts + '</div>' +
-        '<div class="explain"><div class="lbl">' + tr('Explanation') + '</div><div style="margin-top:6px">' + esc(q.explanation) + '</div></div></div>';
+        '<div class="explain"><div class="lbl">' + tr('Explanation') + '</div><div style="margin-top:6px">' + esc(q.explanation) + '</div>' + srcLink(q.sourceUrl) + '</div></div>';
     }).join('');
 
     render('<div class="card pad-lg center">' +
@@ -709,6 +709,10 @@
         (t.sourceUrl ? '<a class="faint gsrc" href="' + esc(t.sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + tr('source ↗') + '</a>' : '') +
         '</div>';
     }).join('') + '</div>';
+  }
+  // Citation link for a question's explanation — same treatment as a glossary term's source.
+  function srcLink(url) {
+    return url ? '<a class="faint gsrc" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + tr('source \u2197') + '</a>' : '';
   }
   function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
 

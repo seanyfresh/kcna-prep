@@ -21,6 +21,7 @@ window.Exams = (function () {
       difficulty: q.difficulty,
       question: q.question,
       explanation: q.explanation,
+      sourceUrl: q.sourceUrl,
       options: shuffled.map((o) => o.text),
       correctIndex: shuffled.findIndex((o) => o.correct),
     };
