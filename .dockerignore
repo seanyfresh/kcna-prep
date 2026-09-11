@@ -7,7 +7,9 @@ node_modules
 docs
 *.md
 !index.html
-CHANGELOG.md
+# The in-app Readme/Changelog pages fetch these at runtime — they must ship.
+!README.md
+!CHANGELOG.md
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
 SECURITY.md

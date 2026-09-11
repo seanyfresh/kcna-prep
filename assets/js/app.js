@@ -1558,9 +1558,30 @@
     render('<div class="page-head"><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div>' +
       '<div class="card"><div id="md-body" class="prose"><p class="muted">' + tr('Loading…') + '</p></div>' +
       '<p class="muted mt" style="font-size:13px;margin-bottom:0">' + tr('View the original on {link}.', { link: '<a href="' + esc(ghUrl) + '" target="_blank" rel="noopener noreferrer">' + tr('GitHub ↗') + '</a>' }) + '</p></div>');
-    fetch(file).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(function (text) { if (token !== mdReq) return; const el = document.getElementById('md-body'); if (el) el.innerHTML = mdToHtml(text); })
-      .catch(function () { if (token !== mdReq) return; const el = document.getElementById('md-body'); if (el) el.innerHTML = '<p class="muted">' + tr('This needs a connection to load. {link}', { link: '<a href="' + esc(ghUrl) + '" target="_blank" rel="noopener noreferrer">' + tr('Open it on GitHub ↗') + '</a>' }) + '</p>'; });
+    fetch(file).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      // A host with an SPA fallback (`try_files $uri /index.html`, which most static hosts
+      // do) answers a *missing* file with index.html and a 200. Trusting the status alone
+      // renders the app's own source back at the reader as prose — which is how a
+      // deployment gap disguises itself as content. Treat HTML here as "not published".
+      if ((r.headers.get('content-type') || '').indexOf('text/html') >= 0) throw new Error('not-markdown');
+      return r.text();
+    })
+      .then(function (text) {
+        if (/^\s*(?:<!doctype html|<html[\s>])/i.test(text)) throw new Error('not-markdown');
+        if (token !== mdReq) return;
+        const el = document.getElementById('md-body');
+        if (el) el.innerHTML = mdToHtml(text);
+      })
+      .catch(function (err) {
+        if (token !== mdReq) return;
+        const el = document.getElementById('md-body');
+        if (!el) return;
+        const link = '<a href="' + esc(ghUrl) + '" target="_blank" rel="noopener noreferrer">' + tr('Open it on GitHub ↗') + '</a>';
+        el.innerHTML = '<p class="muted">' + (err && err.message === 'not-markdown'
+          ? tr('This file was not published with this build of the app. {link}', { link: link })
+          : tr('This needs a connection to load. {link}', { link: link })) + '</p>';
+      });
   }
   function viewReadme() { viewMarkdown('README', tr('About this project, straight from the repository.'), 'README.md', REPO_URL + '/blob/main/README.md'); }
   function viewChangelog() { viewMarkdown(tr('Changelog'), tr('Every notable change, newest first.'), 'CHANGELOG.md', REPO_URL + '/blob/main/CHANGELOG.md'); }
