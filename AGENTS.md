@@ -25,6 +25,17 @@ Offline-capable study app for the **Kubernetes & Cloud Native Associate (KCNA)**
 - **`ai_runtime: none`** — a static app makes no AI calls at runtime and sends no data anywhere; any runtime AI would break both the offline-first and dependency-free tenets. Changing that stance is a design decision: ADR first (`~/seanyvault/standards/ai-runtime-policy.md`).
 - When you change cached assets, bump `VERSION` and the service-worker cache name, or clients keep stale files.
 - Keep exam content accurate to the current KCNA curriculum; cite the source when changing facts.
+- **Every question carries a `sourceUrl`** to primary documentation for its topic. A new question
+  without one is incomplete, and a citation you have not actually fetched is worse than none —
+  check it resolves and says what the question claims.
+- **Don't reintroduce the option-length tell.** The correct answer must not be systematically
+  longer than its distractors; across the bank the ratio sits at 1.00x. Write distractors that are
+  specific and plausible rather than padding — a short dismissive distractor is also a bad one.
+  Vary `answerIndex` too (options are shuffled at render, but the raw skew is a generation smell).
+- **`holdout: true` reserves a question for the mock exam.** Practice and the diagnostic never
+  serve it. Select via `KCNA.practiceQuestions()` / `KCNA.mockQuestions()`, never by reading
+  `domain.questions` directly — `allQuestions()` spans both pools and is for counting/search only.
+  Keep roughly half of each domain on the holdout side so the mock gets two clean sittings.
 - Keep CI green (GitHub Actions: CI, CodeQL, Pages) — run `make lint` locally first.
 - Conventional Commits.
 - Architecturally-significant decisions get an ADR in `docs/adr/` (Nygard; number-at-commit, placeholder→promote — see `docs/adr/0000-record-architecture-decisions.md`).

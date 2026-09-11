@@ -24,8 +24,10 @@ Study notes · spaced-repetition flashcards · weighted mock exams · honest rea
   links to **authoritative documentation** for further reading.
 - **🃏 Flashcards** — 139 spaced-repetition cards (SM-2 lite; hard cards return sooner)
   in three modes: multiple-choice, type-the-answer (fuzzy-graded), or flip-to-review.
-- **📝 Practice** — **253 fact-checked questions**: quiz by domain, run a 25-question
+- **📝 Practice** — **289 questions, each citing its source**: quiz by domain, run a 25-question
   diagnostic, or sit a full **60-question / 90-minute mock** weighted exactly like the real exam.
+  The mock draws from a **reserved pool that practice never serves**, so its score reflects material
+  you have not already been shown the answer to — and it tells you when you have exhausted that pool.
 - **🎯 Readiness** — an honest readiness score, predicted exam score, pass likelihood,
   per-domain mastery, and recommended next actions. Updates as you practice.
 - **🗓️ Plan** — a study plan **tailored to your Kubernetes experience**, with a live

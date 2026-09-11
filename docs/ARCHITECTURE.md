@@ -36,13 +36,13 @@ Defined at the bottom of `index.html`:
 
 | File | Global | Responsibility |
 |------|--------|----------------|
-| `data-registry.js` | `KCNA` | Content registry, exam `meta`, references/glossary. |
-| `storage.js` | `Store`, `Progress` | `localStorage` wrapper; per-domain stats, history, streak. |
+| `data-registry.js` | `KCNA` | Content registry, exam `meta`, references/glossary, practice/mock pools. |
+| `storage.js` | `Store`, `Progress` | `localStorage` wrapper; per-domain stats, history, streak, mock exposure. |
 | `settings.js` | `Settings` | Theme, motion, exam date, export/import/reset. |
 | `study-plan.js` | `StudyPlan` | 11-week plan, countdown, task check-offs. |
 | `readiness.js` | `Readiness` | Confidence-weighted readiness & predicted score. |
 | `flashcards.js` | `Flashcards` | SM-2-lite spaced repetition; fuzzy typed-answer grading. |
-| `exams.js` | `Exams` | Weighted question selection, shuffling, scoring. |
+| `exams.js` | `Exams` | Weighted question selection (holdout-aware), shuffling, scoring. |
 | `search.js` | `Search` | In-memory index over notes/glossary/domains. |
 | `app.js` | — | Router + all views + keyboard shortcuts + search overlay. |
 | `pwa.js` | `PWA` | Service-worker registration, update/offline UI, install. |
@@ -58,12 +58,26 @@ KCNA.register({
   weight: 44,                       // % of the exam (drives mock distribution)
   notes:      [{ id, topic, title, html }],
   flashcards: [{ id, front, back, topic }],
-  questions:  [{ id, topic, difficulty, question, options:[…], answerIndex, explanation }],
+  questions:  [{ id, topic, difficulty, question, options:[…], answerIndex, explanation,
+                 sourceUrl, holdout? }],
 });
 ```
 
 `register()` stamps a stable `id` and `domainId` on every item, so flashcard SRS
 state and quiz stats survive content edits.
+
+Every question carries a `sourceUrl` pointing at primary documentation for its topic,
+rendered as a *source* link beside the explanation.
+
+### Holdout split
+
+Questions flagged `holdout: true` are reserved for the full mock exam; practice and the
+diagnostic never serve them, so a mock score is not a recall test of material the app
+already handed the user the answer to. Callers must select through
+`KCNA.practiceQuestions(id)` / `KCNA.mockQuestions(id)` (or `allPractice()` / `allMock()`)
+rather than reading `domain.questions` — `allQuestions()` spans both sides and is for
+counting and search only. A mock also burns its own questions, so selection prefers ones
+never served before and the session reports how many are repeats.
 
 ### Exam blueprint (current)
 
@@ -82,7 +96,7 @@ under the `architecture` domain.
 ## State & persistence
 
 Everything is under the `kcna:` prefix in `localStorage`:
-`domainStats`, `examHistory`, `srs`, `plan`, `settings`, `streak`, `fcMode`.
+`domainStats`, `examHistory`, `mockSeen`, `srs`, `plan`, `settings`, `streak`, `fcMode`.
 Export/import (Settings) serializes all of it to a portable JSON file.
 
 ## Regenerating PWA icons
