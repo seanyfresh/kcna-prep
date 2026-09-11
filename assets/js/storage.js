@@ -70,9 +70,11 @@ window.Progress = (function () {
      rather than a recall test of the first. */
   const SEEN_KEY = 'mockSeen';
   function recordMockSeen(ids) {
-    const seen = Store.get(SEEN_KEY, []);
+    // Called from grade(); a hand-edited or imported bad value must not throw here
+    // and cost the user the mock they just finished.
+    const raw = Store.get(SEEN_KEY, []);
     const set = {};
-    seen.concat(ids || []).forEach((id) => { if (id) set[id] = 1; });
+    (Array.isArray(raw) ? raw : []).concat(ids || []).forEach((id) => { if (id) set[id] = 1; });
     Store.set(SEEN_KEY, Object.keys(set));
   }
   // Returns an id -> true map; tolerates a hand-edited or imported bad value.

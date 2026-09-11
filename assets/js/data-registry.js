@@ -55,6 +55,9 @@ window.KCNA = (function () {
     all() { return domains.slice(); },
     domain(id) { return domains.find((d) => d.id === id); },
     totalWeight() { return domains.reduce((s, d) => s + (d.weight || 0), 0); },
+    // The whole bank, both sides of the holdout split. Use this only for counting or
+    // search — serving from it in a quiz would put mock-only questions in front of the
+    // user. Quiz selection goes through the pool accessors below.
     allQuestions() {
       return domains.flatMap((d) =>
         (d.questions || []).map((q) => Object.assign({}, q, { domainId: d.id, domainName: d.name })));
