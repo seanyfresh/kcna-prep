@@ -3,7 +3,12 @@
 All notable changes to **KCNA Prep** are documented here.
 
 ## [Unreleased]
-<!-- changelog:through 6c5a88b3b6db6834327106fe11da8ffd1cce80ad -->
+<!-- changelog:through 98ccfc79de6fbd2f1431d4d15287611e3bb9f2be -->
+
+- **The in-app Readme and Changelog pages now detect an SPA fallback and say the file wasn't published, instead of rendering the app's own HTML source as prose.**
+  *Why:* Most static hosts answer a request for a missing file with `index.html` and a cheerful 200, so the old `response.ok` check happily fed the app's own markup to `mdToHtml` — readers got a CSP meta tag served up as reading material, with nothing in the console to suggest anything was wrong. A missing file should look missing, not look like content.
+- **`README.md` and `CHANGELOG.md` now ship inside the Docker image.**
+  *Why:* `.dockerignore` excluded `*.md` and the Dockerfile never copied them, which meant this repo's own container was the exact bug above: two pages that fetched files nobody had ever deployed. We shipped the reader without the thing it reads.
 
 - **Grew the question delivery pool and reserved a mock-only holdout so practice and the mock exam draw from disjoint sets.**
   *Why: Practising on the exact questions you'd later be graded on made the readiness score a very confident liar. Roughly half of each domain now sits behind `holdout: true`, untouched until the mock — so a 90% finally means something other than "good memory".*
