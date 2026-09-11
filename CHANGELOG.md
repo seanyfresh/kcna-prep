@@ -3,7 +3,18 @@
 All notable changes to **KCNA Prep** are documented here.
 
 ## [Unreleased]
-<!-- changelog:through db7fcc42b0d539c41bc9e810e04584c4bd783b36 -->
+<!-- changelog:through 6c5a88b3b6db6834327106fe11da8ffd1cce80ad -->
+
+- **Grew the question delivery pool and reserved a mock-only holdout so practice and the mock exam draw from disjoint sets.**
+  *Why: Practising on the exact questions you'd later be graded on made the readiness score a very confident liar. Roughly half of each domain now sits behind `holdout: true`, untouched until the mock — so a 90% finally means something other than "good memory".*
+- **Added a verified `sourceUrl` to every question in the bank, citing primary Kubernetes and CNCF documentation.**
+  *Why: Every fact was "definitely right, trust me", which is exactly what a study app shouldn't say. Each citation was actually fetched and read to confirm it says what the question claims — a link that 404s or contradicts the answer is worse than no link at all.*
+- **Removed the option-length tell from the question bank; correct answers no longer run longer than their distractors (ratio now 1.00x).**
+  *Why: You could pass a decent slice of the bank by picking the wordiest option without reading it — a strategy that works beautifully here and not at all on exam day. Distractors were rewritten to be specific and plausible rather than short and obviously wrong.*
+- **Hardened `recordMockSeen` against a corrupt or malformed stored value.**
+  *Why: One garbled entry in local storage was enough to take the mock-tracking path down with it. It now shrugs at nonsense and carries on instead of taking the whole sitting with it.*
+- **Recorded ADR-0001 documenting the mock-exam holdout split and its sizing rationale.**
+  *Why: "Why is half the bank invisible?" is a question future-us would otherwise answer by guessing wrong and deleting the split.*
 
 - **Removed the Dependabot configuration (`.github/dependabot.yml`); automated version-update PRs are decommissioned.**
   *Why:* A zero-build, zero-runtime-dep PWA has nothing for Dependabot to bump — it was opening PRs against dependencies we don't have. Retired the bot before it filed another "0 of 0 packages updated" report.
