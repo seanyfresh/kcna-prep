@@ -6,7 +6,7 @@
  *   - Google Fonts: stale-while-revalidate (so the app looks right offline too).
  * Bump CACHE when shipping new content so clients pick it up.
  */
-const CACHE = 'kcna-prep-v1.10.0';
+const CACHE = 'kcna-prep-v1.11.0';
 
 const PRECACHE = [
   './',

@@ -53,8 +53,22 @@ window.Exams = (function () {
     return shuffle(out).slice(0, n);
   }
 
+  // Mock selection prefers questions this device has never been served, so a second
+  // sitting still measures knowledge rather than memory of the first. Once the holdout
+  // is used up it falls back to repeats — build() reports how many, so the result can
+  // say the score is no longer a clean read.
+  function pickUnseenFirst(pool, n, seen) {
+    const fresh = shuffle(pool.filter((q) => !seen[q.id]));
+    const out = fresh.slice(0, n);
+    if (out.length < n) {
+      const repeats = shuffle(pool.filter((q) => seen[q.id]));
+      out.push.apply(out, repeats.slice(0, n - out.length));
+    }
+    return out;
+  }
+
   // weighted selection across domains to mirror exam blueprint
-  function weightedPick(count, bias) {
+  function weightedPick(count, bias, mock) {
     const domains = KCNA.all();
     const totalW = KCNA.totalWeight() || 1;
     const picked = [];
@@ -72,16 +86,21 @@ window.Exams = (function () {
       alloc[idx % alloc.length].n += diff > 0 ? 1 : -1;
       diff += diff > 0 ? -1 : 1; idx++;
     }
+    const seen = mock && window.Progress ? Progress.mockSeen() : {};
     alloc.forEach(({ d, n }) => {
-      const chosen = pickFromPool((d.questions || []).slice(), Math.max(0, n), bias);
+      const source = mock ? KCNA.mockQuestions(d.id) : KCNA.practiceQuestions(d.id);
+      const chosen = mock
+        ? pickUnseenFirst(source, Math.max(0, n), seen)
+        : pickFromPool(source, Math.max(0, n), bias);
       chosen.forEach((q) => {
-        if (!usedIds[q.id]) { usedIds[q.id] = 1; picked.push(Object.assign({}, q, { domainId: d.id, domainName: d.name })); }
+        if (!usedIds[q.id]) { usedIds[q.id] = 1; picked.push(q); }
       });
     });
-    // Top up from a global pool of unused questions if a domain was short,
-    // so the quiz always reaches the requested count when questions exist.
+    // Top up from a global pool of unused questions if a domain was short, so the quiz
+    // always reaches the requested count. Stays on the same side of the holdout split —
+    // topping up from the whole bank would leak mock questions into practice.
     if (picked.length < count) {
-      const extra = shuffle(KCNA.allQuestions().filter((q) => !usedIds[q.id]));
+      const extra = shuffle((mock ? KCNA.allMock() : KCNA.allPractice()).filter((q) => !usedIds[q.id]));
       for (let i = 0; i < extra.length && picked.length < count; i++) {
         usedIds[extra[i].id] = 1;
         picked.push(extra[i]);
@@ -91,10 +110,8 @@ window.Exams = (function () {
   }
 
   function domainPick(domainId, count, bias) {
-    const d = KCNA.domain(domainId);
-    if (!d) return [];
-    const mapped = (d.questions || []).map((q) => Object.assign({}, q, { domainId: d.id, domainName: d.name }));
-    return pickFromPool(mapped, count, bias);
+    if (!KCNA.domain(domainId)) return [];
+    return pickFromPool(KCNA.practiceQuestions(domainId), count, bias);
   }
 
   // build a session: {mode, title, questions:[prepped], minutes}
@@ -105,11 +122,11 @@ window.Exams = (function () {
     // and mock stay representative so readiness/scores remain honest.
     const bias = mode === 'practice';
     if (mode === 'mock') {
-      raw = weightedPick(KCNA.meta.examQuestions, false);
+      raw = weightedPick(KCNA.meta.examQuestions, false, true);
       title = 'Full Mock Exam';
       minutes = KCNA.meta.examMinutes;
     } else if (mode === 'diagnostic') {
-      raw = weightedPick(opts.count || 25, false);
+      raw = weightedPick(opts.count || 25, false, false);
       title = 'Diagnostic Assessment';
       minutes = 0;
     } else if (opts.domainId) {
@@ -117,12 +134,15 @@ window.Exams = (function () {
       title = (KCNA.domain(opts.domainId) || {}).name + ' — Practice';
       minutes = 0;
     } else {
-      raw = weightedPick(opts.count || 20, bias);
+      raw = weightedPick(opts.count || 20, bias, false);
       title = 'Mixed Practice';
       minutes = 0;
     }
+    // How much of a mock the user has already been shown — 0 means a clean read.
+    const seen = mode === 'mock' && window.Progress ? Progress.mockSeen() : {};
+    const reused = raw.filter((q) => seen[q.id]).length;
     return {
-      mode, title, minutes,
+      mode, title, minutes, reused,
       questions: raw.map(prep),
       createdAt: Date.now(),
     };
@@ -147,6 +167,9 @@ window.Exams = (function () {
     const passed = pct >= KCNA.meta.passPct;
 
     // update rolling progress + history + streak
+    // A mock hands back every answer at the end, so its questions are burnt for
+    // measurement purposes — record them so the next mock can avoid them.
+    if (session.mode === 'mock') Progress.recordMockSeen(session.questions.map((q) => q.id));
     Progress.recordAnswers(detail.map((d) => ({ domainId: d.q.domainId, correct: d.isRight })));
     Progress.recordStudyDay();
     Progress.recordExam({

@@ -218,7 +218,7 @@
       const acc = st.answered ? Math.round((st.correct / st.answered) * 100) : 0;
       return '<a class="card domain-card" href="#/learn/' + d.id + '">' +
         '<div class="spread"><strong>' + esc(d.name) + '</strong><span class="pill accent">' + tr('{weight}% of exam', { weight: d.weight }) + '</span></div>' +
-        '<p class="muted" style="margin:8px 0 12px">' + tr('{notes} notes · {cards} cards · {questions} questions', { notes: (d.notes || []).length, cards: (d.flashcards || []).length, questions: (d.questions || []).length }) + '</p>' +
+        '<p class="muted" style="margin:8px 0 12px">' + tr('{notes} notes · {cards} cards · {questions} questions', { notes: (d.notes || []).length, cards: (d.flashcards || []).length, questions: KCNA.practiceQuestions(d.id).length }) + '</p>' +
         (st.answered ? bar(acc, Readiness.colorClass(acc)) + '<div class="wt mt">' + tr('Mastery {pct}% · {answered} answered', { pct: acc, answered: st.answered }) + '</div>' : '<div class="wt">' + tr('Not started yet') + '</div>') +
         '</a>';
     }).join('');
@@ -431,7 +431,7 @@
 
     const domainChoices = KCNA.all().map((d) =>
       '<div class="choice" data-mode="practice" data-domain="' + d.id + '"><div class="ct">' + esc(d.name) + '</div>' +
-      '<div class="cd">' + tr('{weight}% · {questions} questions', { weight: d.weight, questions: (d.questions || []).length }) + '</div></div>').join('');
+      '<div class="cd">' + tr('{weight}% · {questions} questions', { weight: d.weight, questions: KCNA.practiceQuestions(d.id).length }) + '</div></div>').join('');
     render('<div class="page-head"><h1>' + tr('Practice') + '</h1><p>' + tr('Quiz by domain, run a diagnostic, or sit a full timed mock exam (60 questions, 90 minutes, pass at 75%).') + '</p></div>' +
       '<div class="grid cols-2">' +
         '<div class="card"><h2>📝 ' + tr('Full Mock Exam') + '</h2><p class="muted">' + tr('60 questions, weighted exactly like the real KCNA, 90-minute timer. No feedback until the end — just like exam day.') + '</p>' +
@@ -561,6 +561,8 @@
         '<span class="muted">' + tr('{correct} / {total} correct · pass mark {pass}%', { correct: res.correct, total: res.total, pass: KCNA.meta.passPct }) + '</span></div>' +
         (session.mode === 'mock' || session.mode === 'diagnostic'
           ? '<p class="muted mt">' + tr('Your readiness score has been updated.') + ' <a href="#/readiness">' + tr('See full analysis ›') + '</a></p>' : '') +
+        (session.mode === 'mock' && session.reused
+          ? '<p class="muted mt">⚠️ ' + tr('{n} of {total} questions were ones you have already been shown in an earlier mock, so this score flatters you.', { n: session.reused, total: res.total }) + '</p>' : '') +
       '</div>' +
       '<div class="card mt-lg"><h2>' + tr('By domain') + '</h2>' + perDomain + '</div>' +
       '<div class="btn-row mt-lg"><a class="btn primary" href="#/practice">' + tr('Another round') + '</a>' +
