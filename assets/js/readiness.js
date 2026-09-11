@@ -46,7 +46,7 @@ window.Readiness = (function () {
         masteryPct: Math.round(blendedAcc * 100),
         scorePct: Math.round(score * 100),
         coverage: Math.round(confidence * 100),
-        questionsAvailable: (d.questions || []).length,
+        questionsAvailable: KCNA.practiceQuestions(d.id).length,
       };
     });
 

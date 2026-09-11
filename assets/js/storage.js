@@ -64,6 +64,27 @@ window.Progress = (function () {
     return out;
   }
 
+  /* ---------- mock exposure ----------
+     Which holdout questions a mock has already shown. The mock prefers ones the
+     user has never been served, so a second sitting stays a real measurement
+     rather than a recall test of the first. */
+  const SEEN_KEY = 'mockSeen';
+  function recordMockSeen(ids) {
+    // Called from grade(); a hand-edited or imported bad value must not throw here
+    // and cost the user the mock they just finished.
+    const raw = Store.get(SEEN_KEY, []);
+    const set = {};
+    (Array.isArray(raw) ? raw : []).concat(ids || []).forEach((id) => { if (id) set[id] = 1; });
+    Store.set(SEEN_KEY, Object.keys(set));
+  }
+  // Returns an id -> true map; tolerates a hand-edited or imported bad value.
+  function mockSeen() {
+    const raw = Store.get(SEEN_KEY, []);
+    const out = {};
+    if (Array.isArray(raw)) raw.forEach((id) => { if (id) out[id] = true; });
+    return out;
+  }
+
   /* ---------- flashcard accuracy (for adaptive difficulty) ---------- */
   const CARD_KEY = 'cardStats';
   function recordCard(correct) {
@@ -105,5 +126,6 @@ window.Progress = (function () {
     return s;
   }
 
-  return { recordAnswers, recordExam, history, stats, recordStudyDay, streak, recordCard, cardStats };
+  return { recordAnswers, recordExam, history, stats, recordStudyDay, streak, recordCard, cardStats,
+    recordMockSeen, mockSeen };
 })();
