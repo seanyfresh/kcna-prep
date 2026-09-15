@@ -3,7 +3,12 @@
 All notable changes to **KCNA Prep** are documented here.
 
 ## [Unreleased]
-<!-- changelog:through 1692f2bb3cf21f0b7bc6d7bdea5535ccbf9fbdca -->
+<!-- changelog:through c974821ab676e13a3dc953e11191c34d80661a24 -->
+
+- **Bumped the service-worker cache version to 1.11.2 so installed clients download the new question bank.**
+  *Why:* Service workers hold on to old files and never check for updates on their own. Without the version bump, everyone with the app installed would keep studying last week's questions and wondering where the new ones were.
+- **Updated the documented practice-question count to 302.**
+  *Why:* We added the questions based on real exam feedback but left the docs showing the old number. The count should match the actual bank.
 
 - **Added 13 questions on topics a real test-taker saw on the KCNA exam that the bank barely covered, if at all: Gateway API vs Ingress, CoreDNS/nslookup debugging, `kubectl logs --previous`, OOMKilled diagnosis, GPU scheduling, cordon-then-drain, `-o wide --all-namespaces`, scheduler filter/score phases, TLS secrets, `helm --atomic`, Argo CD vs Jenkins X/Tekton, FaaS, and KCD. Every `sourceUrl` was checked, which turned up and fixed two dead links and one outdated Helm 4 flag reference.**
   *Why:* Someone walked into the real exam and came out with a list of things we never taught them. Getting bug reports from the exam itself is humbling. At least every citation now leads to a page that exists and says what we claim.
