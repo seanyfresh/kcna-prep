@@ -3,7 +3,10 @@
 All notable changes to **KCNA Prep** are documented here.
 
 ## [Unreleased]
-<!-- changelog:through 98ccfc79de6fbd2f1431d4d15287611e3bb9f2be -->
+<!-- changelog:through 1692f2bb3cf21f0b7bc6d7bdea5535ccbf9fbdca -->
+
+- **Added 13 questions on topics a real test-taker saw on the KCNA exam that the bank barely covered, if at all: Gateway API vs Ingress, CoreDNS/nslookup debugging, `kubectl logs --previous`, OOMKilled diagnosis, GPU scheduling, cordon-then-drain, `-o wide --all-namespaces`, scheduler filter/score phases, TLS secrets, `helm --atomic`, Argo CD vs Jenkins X/Tekton, FaaS, and KCD. Every `sourceUrl` was checked, which turned up and fixed two dead links and one outdated Helm 4 flag reference.**
+  *Why:* Someone walked into the real exam and came out with a list of things we never taught them. Getting bug reports from the exam itself is humbling. At least every citation now leads to a page that exists and says what we claim.
 
 - **The in-app Readme and Changelog pages now detect an SPA fallback and say the file wasn't published, instead of rendering the app's own HTML source as prose.**
   *Why:* Most static hosts answer a request for a missing file with `index.html` and a cheerful 200, so the old `response.ok` check happily fed the app's own markup to `mdToHtml` — readers got a CSP meta tag served up as reading material, with nothing in the console to suggest anything was wrong. A missing file should look missing, not look like content.
